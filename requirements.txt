@@ -1,0 +1,16 @@
+ftfy
+regex
+kornia
+gputil
+seaborn
+colorama
+braceexpand
+torch_fidelity
+typed-argument-parser
+torch===2.1.2
+torchvision==0.16.2
+pandas==2.2.2
+webdataset==0.2.86
+numpy==1.26.4
+timm==1.0.8
+xformers==0.0.23.post1
