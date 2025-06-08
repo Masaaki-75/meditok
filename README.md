@@ -42,6 +42,10 @@ The model also benefits from many publicly available medical image datasets. We 
 We sincerely thank the communities behind these works for making the resources available and inspiring further research in the field. 
 
 
+## 🚀 Notes
+If you build something exciting or encounter any issues when using our model, please feel free to open an issue, submit a pull request, or contact us with feedback. Your contributions and insights are highly valued!
+
+
 ## 📖 Citation
 If you find MedITok useful for your research and applications, please kindly cite our work:
 ```
@@ -53,5 +57,4 @@ If you find MedITok useful for your research and applications, please kindly cit
 }
 ```
 
-## 🚀 Notes
-If you build something exciting or encounter any issues when using our model, please feel free to open an issue, submit a pull request, or contact us with feedback. Your contributions and insights are highly valued!
+
