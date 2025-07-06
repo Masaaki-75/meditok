@@ -50,7 +50,7 @@ If you build something exciting or encounter any issues when using our model, pl
 If you find MedITok useful for your research and applications, please kindly cite our work:
 ```
 @article{ma2025meditok,
-  title={MedITok: A Unified Tokenizer for Medical Image Synthesis and Interpretation},
+  title={{MedITok}: A Unified Tokenizer for Medical Image Synthesis and Interpretation},
   author={Ma, Chenglong and Ji, Yuanfeng and Ye, Jin and Li, Zilong and Wang, Chenhui and Ning, Junzhi and Li, Wei and Liu, Lihao and Guo, Qiushan and Li, Tianbin and He, Junjun and Shan, Hongming},
   journal={arXiv preprint arXiv:2505.19225},
   year={2025}
