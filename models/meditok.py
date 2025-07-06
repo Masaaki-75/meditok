@@ -13,6 +13,14 @@ from models.quant import VectorQuantizerM
 from models.vitamin import GeGluMlp, ViTaminDecoder
 
 
+class DotDict:
+    def __init__(self, dictionary):
+        for key, value in dictionary.items():
+            if isinstance(value, dict):
+                value = DotDict(value)  # Recursively convert nested dictionaries
+            setattr(self, key, value)
+
+
 class MedITok(nn.Module):
     def __init__(self, args):
         super().__init__()
@@ -129,16 +137,8 @@ class MedITok(nn.Module):
         return img_rec
 
 
-if __name__ == '__main__':
-    class DotDict:
-        def __init__(self, dictionary):
-            for key, value in dictionary.items():
-                if isinstance(value, dict):
-                    value = DotDict(value)  # Recursively convert nested dictionaries
-                setattr(self, key, value)
-
-    img_size = 256
-    args = DotDict(dict(
+def get_meditok_args(img_size=256):
+    return DotDict(dict(
         embed_dim=768,
         num_query=0,
         model='vitamin_large',
@@ -156,10 +156,21 @@ if __name__ == '__main__':
         device='cpu'
     ))
 
-    net = MedITok(args).eval()
-    ckpt_path = '../ckpts/meditok_simple_v1.pth'
+
+def build_meditok(ckpt_path, img_size=256):
+    args = get_meditok_args(img_size)
     state_dict = torch.load(ckpt_path, map_location='cpu')
-    net.load_state_dict(state_dict)
+    model = MedITok(args)
+    model.load_state_dict(state_dict)
+    model = model.eval()
+    del state_dict
+    return model
+
+
+if __name__ == '__main__':
+    img_size = 256
+    ckpt_path = '../ckpts/meditok_simple_v1.pth'
+    net = build_meditok(ckpt_path, img_size=img_size)
     x = torch.randn((2, 3, img_size, img_size))
     with torch.no_grad():
         f = net.encode_image(x, verbose=True)
