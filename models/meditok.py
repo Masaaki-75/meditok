@@ -169,7 +169,7 @@ def build_meditok(ckpt_path, img_size=256):
 
 if __name__ == '__main__':
     img_size = 256
-    ckpt_path = '../ckpts/meditok_simple_v1.pth'
+    ckpt_path = '../weights/meditok/meditok_simple_v1.pth'
     net = build_meditok(ckpt_path, img_size=img_size)
     x = torch.randn((2, 3, img_size, img_size))
     with torch.no_grad():

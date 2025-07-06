@@ -23,7 +23,7 @@ This is the official repository for MedITok, a unified visual tokenizer tailored
 
 
 ## 🎬 Demo
-1. Put the downloaded checkpoint file `meditok_simple_v1.pth` in `ckpts` folder. 
+1. Put the downloaded checkpoint file `meditok_simple_v1.pth` in `weights/meditok` folder. 
 2. Create a virtual environment with core libraries listed in `requirements.txt`. 
 3. Open `demo.ipynb` and click `Run All` to run the reconstruction demo. Feel free to change the images you would like to play with. 
 4. Run `python demo.py` to save the reconstruction results. 

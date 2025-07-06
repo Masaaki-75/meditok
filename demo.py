@@ -112,7 +112,7 @@ if __name__ == '__main__':
     ))
 
     net = MedITok(args)
-    ckpt_path = 'ckpts/meditok_simple_v1.pth'
+    ckpt_path = 'weights/meditok/meditok_simple_v1.pth'
     state_dict = torch.load(ckpt_path, map_location='cpu')
     net.load_state_dict(state_dict)
     net = net.eval()
