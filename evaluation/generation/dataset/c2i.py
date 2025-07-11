@@ -23,21 +23,6 @@ def read_jsonl(file_path, encoding='utf-8', skip_error=False):
     return data
 
 
-def read_jsonl(file_path, encoding='utf-8', skip_error=False):
-    data = []
-    with open(file_path, 'r', encoding=encoding) as f:
-        for idx, line in enumerate(f):
-            try:
-                data.append(json.loads(line.strip()))  # Convert each JSONL line to a dictionary
-            except Exception as err:
-                print(f"Error when loading Line {idx} in {file_path}: {err}")
-                if skip_error:
-                    continue
-                else:
-                    raise err
-    return data
-
-
 class Class2ImgDatasetCode(Dataset):
     """
     The visual tokenization process is done offline.
@@ -55,7 +40,7 @@ class Class2ImgDatasetCode(Dataset):
 
     def __getitem__(self, index):
         item = self.img_path_list[index]
-        code_path = item['identifier']
+        code_path = item['code_identifier']
         code = torch.load(code_path)  # [num_codebooks, 16, 16]
         label = item['label']
         return code, label
