@@ -144,7 +144,7 @@ def main(args):
     total = 0
     for batch in pbar:
         #c_indices = torch.randint(0, args.num_classes, (n,), device=device)
-        token_id_paths = [b['identifier'] for b in batch]
+        token_id_paths = [b['code_identifier'] for b in batch]
         identifiers = [p.split('/')[-1].replace('.pt', '') for p in token_id_paths]
         labels = [int(b['label']) for b in batch]
         c_indices = torch.tensor(labels, device=device)
