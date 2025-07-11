@@ -1,7 +1,7 @@
 # !/bin/bash
 set -x
 
-ROOT_DIR="path/to/meditok"
+ROOT_DIR="path/to/meditok/repo"
 WORKSPACE="${ROOT_DIR}/evaluation/generation"
 cd ${WORKSPACE}
 
@@ -25,7 +25,8 @@ autoregressive/train/train_c2i.py \
 --exp-name ${EXP_NAME} \
 --code-dir ${CODE_DIR} \
 --tokenizer-name ${TOKENIZER_NAME} \
---gpt-type "c2i" \
+--gpt-model GPT-B \
+--gpt-type c2i \
 --dataset c2i_code \
 --image-size 256 \
 --epochs ${EPOCHS} \
@@ -34,6 +35,6 @@ autoregressive/train/train_c2i.py \
 --global-batch-size ${BATCH_SIZE} \
 --vocab-size ${VOCAB_SIZE} \
 --results-dir ${RES_DIR} \
-#--vq-embed-path ${VQ_PATH}
-#--no-compile
+#--vq-embed-path ${VQ_PATH} \
+#--no-compile \
 #--ema
