@@ -19,7 +19,7 @@ This is the official repository for MedITok, a unified visual tokenizer tailored
 - [x] Release [preprint](https://arxiv.org/abs/2505.19225).
 - [x] Release the initial [weights](https://huggingface.co/massaki75/meditok/tree/main).
 - [x] Release evaluation code.
-- [ ] Release training code.
+- [x] Release training code.
 
 
 ## 🎬 Demo
