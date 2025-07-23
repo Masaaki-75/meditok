@@ -28,6 +28,16 @@ This is the official repository for MedITok, a unified visual tokenizer tailored
 3. Open `demo.ipynb` and click `Run All` to run the reconstruction demo. Feel free to change the images you would like to play with. 
 4. Run `python demo.py` to save the reconstruction results. 
 
+## 🔥 Training
+Before training / fine-tuning the MedITok model, we need to:
+- Download pretrained weights ([ViTamin](https://huggingface.co/jienengchen/ViTamin-B), [BiomedClip](https://huggingface.co/microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224/tree/main), [BiomedBERT](https://huggingface.co/microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract/tree/main), etc.) and fill the local path in `./local_openclip/constants.py`
+- Download the [models](https://huggingface.co/FoundationVision/unitok_external) used for loss calculation and put them under `./external`.
+- Write the metadata as a `.csv` file with columns of `"identifier"` (relative or absolute path of each image), `"caption"` (the paired caption), and `"modality"` (imaging modality of the image).
+  - Note that, we save each CT slice as an `int16` PNG file to preserve the HU values, which allow for CT windowing data augmentation. Thus images tagged with `"modality"=="ct"` would undergo specific preprocessing (see the `ReadMedicalImage` class in `./datasets/transforms.py` for detail).
+- Configure the variables in the training scripts (`./scripts/train_stage1.sh` and `./scripts/train_stage2.sh`). To figure out what each variable represent, please see the `Args` class in `./utilities/config.py`.
+- Get ready for some potential bugs!
+
+Once we have everything prepared, we can run the scripts in `./scripts` to launch the training!
 
 
 ## 🙏 Acknowledgment
