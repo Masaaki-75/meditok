@@ -30,12 +30,12 @@ This is the official repository for MedITok, a unified visual tokenizer tailored
 
 ## 🔥 Training
 Before training / fine-tuning the MedITok model, we need to:
-- Download pretrained weights ([ViTamin](https://huggingface.co/jienengchen/ViTamin-B), [BiomedClip](https://huggingface.co/microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224/tree/main), [BiomedBERT](https://huggingface.co/microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract/tree/main), etc.) and fill the local paths in `./local_openclip/constants.py`
-- Download the [models](https://huggingface.co/FoundationVision/unitok_external) used for loss calculation, create a folder named `./external` and put the models under it.
-- Write the metadata as a `.csv` file with columns of `"identifier"` (relative or absolute path of each image), `"caption"` (the paired caption), and `"modality"` (imaging modality of the image).
+1. Download pretrained weights ([ViTamin](https://huggingface.co/jienengchen/ViTamin-B), [BiomedClip](https://huggingface.co/microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224/tree/main), [BiomedBERT](https://huggingface.co/microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract/tree/main), etc.) and fill the local paths in `./local_openclip/constants.py`
+2. Download the [models](https://huggingface.co/FoundationVision/unitok_external) used for loss calculation, create a folder named `./external` and put the models under it.
+3. Write the metadata as a `.csv` file with columns of `"identifier"` (relative or absolute path of each image), `"caption"` (the paired caption), and `"modality"` (imaging modality of the image).
   - Note that, we save each CT slice as an `int16` PNG file to preserve the HU values, which allows for CT windowing data augmentation. Thus images tagged with `"modality"=="ct"` would undergo specific preprocessing (see the `ReadMedicalImage` class in `./datasets/transforms.py` for detail).
-- Configure the variables in the training scripts (`./scripts/train_stage1.sh` and `./scripts/train_stage2.sh`). To figure out what each variable represent, please see the `Args` class in `./utilities/config.py`.
-- Get ready for some potential bugs.
+4. Configure the variables in the training scripts (`./scripts/train_stage1.sh` and `./scripts/train_stage2.sh`). To figure out what each variable represent, please see the `Args` class in `./utilities/config.py`.
+5. Get ready for some potential bugs.
 
 Once we have everything prepared, we can run the scripts in `./scripts` to launch the training!
 
