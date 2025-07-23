@@ -8,7 +8,7 @@ from PIL import Image
 from tqdm import tqdm
 from transformers import set_seed, logging, AutoTokenizer, AutoModelForCausalLM, AutoConfig
 
-from constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
+from constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN, DEFAULT_IMAGE_PATCH_TOKEN
 from conversation import conv_templates, SeparatorStyle
 from utils import disable_torch_init
 from model import LlavaMistralForCausalLM

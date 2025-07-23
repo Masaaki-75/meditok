@@ -1,6 +1,5 @@
 import os
 import sys
-sys.path.append('..')
 import timm
 import torch
 import json
@@ -157,22 +156,27 @@ def get_meditok_args(img_size=256):
     ))
 
 
-def build_meditok(ckpt_path, img_size=256):
-    args = get_meditok_args(img_size)
-    state_dict = torch.load(ckpt_path, map_location='cpu')
+def build_meditok(args=None, ckpt_path=None, img_size=256):
+    if args is None:
+        args = get_meditok_args(img_size)
+
     model = MedITok(args)
-    model.load_state_dict(state_dict)
-    model = model.eval()
-    del state_dict
+
+    if ckpt_path is not None:
+        state_dict = torch.load(ckpt_path, map_location='cpu')
+        model.load_state_dict(state_dict)   
+        del state_dict
+
     return model
 
 
 if __name__ == '__main__':
+    sys.path.append('..')
     img_size = 256
     ckpt_path = '../weights/meditok/meditok_simple_v1.pth'
     net = build_meditok(ckpt_path, img_size=img_size)
     x = torch.randn((2, 3, img_size, img_size))
     with torch.no_grad():
-        f = net.encode_image(x, verbose=True)
+        f = net.encode_image(x)
 
     print(x.shape, f.shape)

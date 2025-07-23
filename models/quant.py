@@ -1,11 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-from utils import dist
 from typing import List, Tuple
 from torch import distributed as tdist
 
+from utilities import dist
 
 def get_entropy_loss(latent_embed, codebook_embed, inv_entropy_tau):
     E_dist = latent_embed.square().sum(dim=1, keepdim=True) + codebook_embed.square().sum(dim=1, keepdim=False)

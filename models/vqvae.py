@@ -6,15 +6,13 @@
   year={2025}
 }
 """
-import timm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from contextlib import nullcontext
 from torch.nn.functional import scaled_dot_product_attention
 
 from models.quant import VectorQuantizerM
-from models.vitamin import ViTaminDecoder, GeGluMlp
+from models.vitamin import GeGluMlp
 
 
 class CausalAttention(nn.Module):

@@ -21,7 +21,6 @@ from models.meditok import build_meditok
 from evaluation.generation.autoregressive.models.gpt_c2i import GPT_models
 from evaluation.generation.autoregressive.models.generate import generate
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-from evaluation.generation.utils.unitok_config import Args
 
 
 def read_jsonl(file_path, encoding='utf-8', skip_error=False):
@@ -78,7 +77,7 @@ def main(args):
     print(f"Starting rank={rank}, seed={seed}, world_size={dist.get_world_size()}.")
 
     # create and load model
-    vq_model = build_meditok(args.vq_ckpt)
+    vq_model = build_meditok(args.vq_ckpt).eval()
 
     # create and load gpt model
     precision = {'none': torch.float32, 'bf16': torch.bfloat16, 'fp16': torch.float16}[args.precision]

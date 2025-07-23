@@ -83,11 +83,11 @@ def tensor_to_image(x):
 
 
 class DotDict:
-        def __init__(self, dictionary):
-            for key, value in dictionary.items():
-                if isinstance(value, dict):
-                    value = DotDict(value)  # Recursively convert nested dictionaries
-                setattr(self, key, value)
+    def __init__(self, dictionary):
+        for key, value in dictionary.items():
+            if isinstance(value, dict):
+                value = DotDict(value)  # Recursively convert nested dictionaries
+            setattr(self, key, value)
 
 
 if __name__ == '__main__':

@@ -1,11 +1,12 @@
 import os
+import json
 import torch
 import numpy as np
 import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import v2 as transv2
-from utilities.helpers import stable_linear_transform
+from datasets.transforms import stable_linear_transform
 
 
 def read_jsonl(file_path, encoding='utf-8', skip_error=False):
