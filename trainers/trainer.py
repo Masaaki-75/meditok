@@ -126,16 +126,6 @@ class Trainer(object):
                 )
                 Lc = sum(clip_losses.values())
 
-                if 'clip_aux_features' in output:
-                    clip_losses2 = self.clip_loss(
-                        image_features=output['clip_image_features'],
-                        text_features=output['clip_aux_features'],
-                        logit_scale=output['logit_scale'],
-                        output_dict=True
-                    )
-                    Lc2 = sum(clip_losses2.values())
-                    Lc = (Lc + Lc2) / 2
-
         if warmup_disc_schedule > 0:
             for d in self.disc.parameters():
                 d.requires_grad = False
@@ -329,7 +319,8 @@ class Trainer(object):
                     m = m._orig_mod
                 
                 if k in state:
-                    if k == 'model' and ignore_text_params:  # 不加载text部分的参数. 因为第一阶段和第二阶段用的clip可能不同.
+                    if k == 'model' and ignore_text_params:  
+                        # Not loading the text encoder params, since different stage could use different text encoders 
                         state_dict = {k:v for k,v in state[k].items() if not k.startswith('text')}
                     else:
                         state_dict = state[k]
