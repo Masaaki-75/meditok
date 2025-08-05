@@ -318,10 +318,10 @@ def partition_param_groups(model, lr, wd, no_wd_keys=(), custom_lr_keys=(), cust
     no_wd = lambda n, p: p.ndim < 2 or any([k in n for k in no_wd_keys])
     custom_lr = lambda n: any([k in n for k in custom_lr_keys])
 
-    print('[optim] Params w/o weight deacy:')
-    print([n for n, p in model.named_parameters() if no_wd(n, p) and p.requires_grad])
-    print('[optim] Params w/ custom lr:')
-    print([n for n, p in model.named_parameters() if custom_lr(n) and p.requires_grad])
+    # print('[optim] Params w/o weight decay:')
+    # print([n for n, p in model.named_parameters() if no_wd(n, p) and p.requires_grad])
+    # print('[optim] Params w/ custom lr:')
+    # print([n for n, p in model.named_parameters() if custom_lr(n) and p.requires_grad])
     print('[optim] Params w/o grad:')
     print([n for n, p in model.named_parameters() if not p.requires_grad])
 

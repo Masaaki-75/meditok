@@ -157,13 +157,13 @@ class Args(Tap):
     deterministic: bool = False
     same_seed_for_all_ranks: int = 0  # this is only for distributed sampler
 
-    # my
+    # extra
     use_biomedclip: bool = False
     vision_as_text: bool = False
-    ignore_text_params: bool = False
-    ct_bias: int = 1024
+    ignore_text_params: bool = False  # Not loading the text encoder params, since different stage could use different text encoders 
+    ct_bias: int = 1024  # If CT is stored as biased png
     freeze_logit_scale: bool = False
-    pretrained_core_path: str = None
+    core_weights_only: bool = False
 
     def seed_everything(self):
         torch.backends.cudnn.enabled = True

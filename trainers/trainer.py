@@ -288,27 +288,8 @@ class Trainer(object):
             state[k] = m.state_dict()
         return state
     
-    def load_pretrained_core(self, pretrained_path):
-        """Load only the tokenizer parameters from the released weights"""
-        if pretrained_path is not None and os.path.exists(pretrained_path):
-            print(f'[{type(self).__name__}.load_pretrained_core] Loading core model from: {pretrained_path}')
-            state_dict = torch.load(pretrained_path, map_location='cpu')
-            m = getattr(self, 'model')
-            if isinstance(m, DDP):
-                m = unwrap_model(m)
-            if hasattr(m, '_orig_mod'):
-                m = m._orig_mod
 
-            ret = m.core.load_state_dict(state_dict, strict=True)
-            if ret is not None:
-                missing, unexpected = ret
-                print(f'[{type(self).__name__}.load_pretrained_core] MISSING: {missing}')
-                print(f'[{type(self).__name__}.load_pretrained_core] UNEXPECTED: {unexpected}')
-        else:
-            print(f'[{type(self).__name__}.load_pretrained_core] Failed to load core model from: {pretrained_path}')
-            
-
-    def load_state_dict(self, state, strict=True, resume_net_only=False, ignore_text_params=False):
+    def load_state_dict(self, state, strict=True, resume_net_only=False, ignore_text_params=False, core_weights_only=False):
         keys = ('model', 'disc') if resume_net_only else ('model', 'disc', 'model_optim', 'disc_optim')
         for k in keys:
             m = getattr(self, k)
@@ -320,24 +301,31 @@ class Trainer(object):
                 
                 if k in state:
                     if k == 'model' and ignore_text_params:  
+                        print(f'[{type(self).__name__}.load_state_dict] ignore_text_params @ {ignore_text_params}')
                         # Not loading the text encoder params, since different stage could use different text encoders 
                         state_dict = {k:v for k,v in state[k].items() if not k.startswith('text')}
                     else:
                         state_dict = state[k]
 
-                    ret = m.load_state_dict(state_dict, strict=strict)
+                    print(f'[{type(self).__name__}.load_state_dict] core_weights_only @ {core_weights_only}')
+                    if k == 'model' and core_weights_only:
+                        ret = m.core.load_state_dict(state_dict, strict=True)
+                    else:
+                        ret = m.load_state_dict(state_dict, strict=strict)
+
                     if ret is not None:
                         missing, unexpected = ret
                         print(f'[{type(self).__name__}.load_state_dict] {k} MISSING: {missing}')
                         print(f'[{type(self).__name__}.load_state_dict] {k} UNEXPECTED: {unexpected}')
+                        print(f'[{type(self).__name__}.load_state_dict] SUCESSFULLY loaded state_dict!')
                 else:
-                    print(f'[{type(self).__name__}.load_state_dict] {k} is NOT FOUND in state_dict.')
+                    print(f'[{type(self).__name__}.load_state_dict] Key {k} is NOT FOUND in state_dict.')
         config: dict = state.pop('config', None)
 
         if config is not None:
             for k, v in self.get_config().items():
                 if config.get(k, None) != v:
-                    err = f'[{type(self).__name__}.load_state_dict] config mismatch: this.{k}={v} (ckpt.{k}={config.get(k, None)})'
+                    err = f'[{type(self).__name__}.load_state_dict] Config mismatch: this.{k}={v} (ckpt.{k}={config.get(k, None)})'
                     if strict:
                         raise AttributeError(err)
                     else:

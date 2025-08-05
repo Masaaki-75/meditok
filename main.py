@@ -26,33 +26,35 @@ from local_openclip.tokenizer import get_biomedclip_tokenizer_offline, tokenize
 def maybe_auto_resume(args: config.Args, pattern='ckpt*.pth'):
     if len(args.resume_from):
         resume = args.resume_from
-        print(f'[auto_resume] load from args.resume @ {resume} ...')
+        print(f'[auto_resume] Load from args.resume @ {resume} ...')
     else:
         all_ckpt = glob.glob(os.path.join(args.output_dir, pattern), recursive=False)
         all_ckpt = sorted(all_ckpt, key=os.path.getmtime, reverse=True)
         if len(all_ckpt) == 0:
             resume = None
-            print(f'[auto_resume] no ckpt found @ {pattern}')
+            print(f'[auto_resume] NO ckpt found @ {pattern}')
             print(f'[auto_resume quit]')
         else:
             resume = all_ckpt[0]
-            print(f'[auto_resume] auto load from @ {resume} ...')
+            print(f'[auto_resume] Auto resume from @ {resume} ...')
 
     if resume is not None:
-        print(f'[auto_resume] only load network weights? @ {args.resume_net_only} ...')
+        print(f'[auto_resume] Load networks only (w/o optimizers)? @ {args.resume_net_only} ...')
         try:
             ckpt_ = torch.load(resume, map_location='cpu')
             ckpt = {}
             dist.barrier()
 
-            # loading bare weights
-            is_bare_weights = 'epoch' not in ckpt
+            is_bare_weights = 'trainer' not in ckpt_
             if is_bare_weights:
+                # loading bare model weights
+                print(f'[auto_resume] Load BARE weights @ {resume}')
                 ckpt['epoch'] = 0
                 ckpt['iter'] = 0
                 ckpt['args'] = args
-                ckpt['model'] = ckpt_
+                ckpt['trainer'] = {'model': ckpt_}
             else:
+                # loading the whole checkpoint
                 ckpt = ckpt_
                 if args.resume_net_only:
                     ckpt['epoch'] = 0
@@ -66,10 +68,10 @@ def maybe_auto_resume(args: config.Args, pattern='ckpt*.pth'):
                 print(f'[auto_resume] Training finished, skipping ...\n\n')
                 exit()
             else:
-                print(f'[auto_resume success] resume from ep{resume_epoch}, it{resume_iter}')
+                print(f'[auto_resume success] Resume ep{resume_epoch} & it{resume_iter} @ {resume}')
                 return ckpt
         except Exception as e:
-            print(f'[auto_resume] failed, {e} @ {resume}')
+            print(f'[auto_resume] Failed, {e} @ {resume}')
             return {}
     else:
         return {}
@@ -85,10 +87,9 @@ def main():
     start_iter = ckpt.get('iter', 0)
     start_epoch = ckpt.get('epoch', 0)
     trainer_state = ckpt.get('trainer', {})
-    pretrained_core_path = args.get('pretrained_core_path', None)
 
     # load data
-    print(f'[data] load data...\n') 
+    print(f'[data] Load data...\n') 
 
     if args.use_biomedclip:
         tokenizer = get_biomedclip_tokenizer_offline()
@@ -169,14 +170,13 @@ def main():
         lpips_loss=lpips_loss,
     )
     
-    trainer.load_pretrained_core(pretrained_core_path)
-
     if trainer_state:
         trainer.load_state_dict(
             trainer_state, 
             strict=False, 
             resume_net_only=args.resume_net_only,
-            ignore_text_params=args.ignore_text_params
+            ignore_text_params=args.ignore_text_params,
+            core_weights_only=args.core_weights_only,
         )
 
     # setup visualizer
@@ -200,8 +200,8 @@ def main():
     gc.collect()
     torch.cuda.empty_cache()
 
-    print(f'[train] exp output directory: {args.output_dir}')
-    print(f'[train] start exp at epoch {start_epoch} iter {start_iter}')
+    print(f'[train] Exp output directory: {args.output_dir}')
+    print(f'[train] Start exp at epoch {start_epoch} iter {start_iter}')
 
     for epoch in range(start_epoch, args.epoch):
         gc.collect()
@@ -209,7 +209,7 @@ def main():
         data['train'].set_epoch(epoch)
 
         start_iter = start_iter if epoch == start_epoch else 0
-        print(f'[train] start training({epoch})')
+        print(f'[train] Start training ({epoch})')
         stats = train_one_ep(
             args=args,
             data=data,
