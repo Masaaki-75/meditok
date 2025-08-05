@@ -14,14 +14,16 @@ CSV_CAPTION_KEY="caption"
 WORKERS=16
 LOCAL_BS=64
 IMG_SIZE=256
-EPOCH=3
+EPOCH=2
 NUM_CODEBOOKS=8
 VOCAB_SIZE=32768
 
 
 EXP_NAME="meditok_s2_clipv01"
+RESUME_NET_ONLY=True  # do not load optimizer
 OUTPUT_DIR="${WORKSPACE}/outputs/ckpts/${EXP_NAME}"
 RESUME_FROM="${WORKSPACE}/outputs/ckpts/meditok_s1_clipv01/ep2-iter65369.pth"
+CORE_WEIGHTS_ONLY=False  # set this to true if only loading tokenizer params from meditok_simple_v1.pth
 RECON_DIR="${WORKSPACE}/outputs/recon/s1"
 
 export CUDA_VISIBLE_DEVICES="0,1,2,3"
@@ -52,5 +54,6 @@ main.py \
 --vis_img_dir 'assets/vis_imgs/' \
 --output_dir $OUTPUT_DIR \
 --resume_from $RESUME_FROM \
---resume_net_only True
+--resume_net_only $RESUME_NET_ONLY \
+--core_weights_only $CORE_WEIGHTS_ONLY
 
