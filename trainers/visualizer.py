@@ -67,14 +67,10 @@ class Visualizer(object):
         # get recon
         B = self.inp_B3HW.shape[0]
         with torch.inference_mode():
-            if hasattr(self.trainer, 'unitok'):
-                self.trainer.unitok.eval()
-                rec_B3HW = misc.unwrap_model(self.trainer.unitok).img_to_reconstructed_img(self.inp_B3HW)
-                self.trainer.unitok.train()
-            else:
-                self.trainer.vae.eval()
-                rec_B3HW = misc.unwrap_model(self.trainer.vae).img_to_reconstructed_img(self.inp_B3HW)
-                self.trainer.vae.train()
+            assert hasattr(self.trainer, 'model'), f"Trainer class has no self.model implemented! Check its definition."
+            self.trainer.model.eval()
+            rec_B3HW = misc.unwrap_model(self.trainer.model).img_to_reconstructed_img(self.inp_B3HW)
+            self.trainer.model.train()
 
             L1 = F.l1_loss(rec_B3HW, self.inp_B3HW).item()
             Lpip = self.trainer.lpips_loss(rec_B3HW, self.inp_B3HW).item()
@@ -123,7 +119,12 @@ def setup_visualizer(args, trainer, preprocess_val):
     for img in os.listdir(args.vis_img_dir):
         img = os.path.join(args.vis_img_dir, img)
         img = pil_load(img, args.img_size * 2)
-        vis_imgs.append(preprocess_val(img))
+        img = preprocess_val(img)
+        if isinstance(img, Image.Image):
+            img = np.array(img, dtype=np.float32) / 255.0 * 2 - 1
+            img = torch.from_numpy(img)
+            img = img.permute(2, 0, 1)
+        vis_imgs.append(img)
     vis_imgs = torch.stack(vis_imgs, dim=0).to(args.device, non_blocking=True)
     visualizer = Visualizer(True, args.device, trainer)
     visualizer.vis_prologue(vis_imgs)
