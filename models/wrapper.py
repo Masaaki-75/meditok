@@ -66,7 +66,7 @@ class TokenizerWrapper(nn.Module):
             "codebook_usages": usages,
             "clip_image_features": clip_visual,
             "clip_text_features": clip_text,
-            "logit_scale": self.logit_scale.exp()
+            "logit_scale": self.core.logit_scale.exp()
         }
         return output_dict
     
@@ -114,7 +114,7 @@ class TokenizerWrapper(nn.Module):
             p.requires_grad = False
 
         if freeze_logit_scale:
-            self.logit_scale.requires_grad = False
+            self.core.logit_scale.requires_grad = False
             
         self.text_no_grad = True
 
