@@ -35,9 +35,8 @@ Before training / fine-tuning the MedITok model, we need to:
 3. Write the metadata as a `.csv` file with columns of `"identifier"` (relative or absolute path of each image), `"caption"` (the paired caption), and `"modality"` (imaging modality of the image).
   - Note that, we save each CT slice as an `int16` PNG file to preserve the HU values, which allows for CT windowing data augmentation. Thus images tagged with `"modality"=="ct"` would undergo specific preprocessing (see the `ReadMedicalImage` class in `./datasets/transforms.py` for detail).
 4. Configure the variables in the training scripts (`./scripts/train_stage1.sh` and `./scripts/train_stage2.sh`). To figure out what each variable represent, please see the `Args` class in `./utilities/config.py`.
-5. Get ready for some potential bugs.
 
-Once we have everything prepared, we can run the scripts in `./scripts` to launch the training!
+Once we have everything prepared, we can run the scripts in `./scripts` to launch the training. If you catch any bugs, feel free to open an issue/PR!
 
 
 ## 🙏 Acknowledgment
