@@ -136,7 +136,7 @@ class MedITok(nn.Module):
         return img_rec
 
 
-def get_meditok_args(img_size=256):
+def get_meditok_args(img_size=256, grad_ckpt=False):
     return DotDict(dict(
         embed_dim=768,
         num_query=0,
@@ -151,14 +151,14 @@ def get_meditok_args(img_size=256):
         e_temp=0.01,
         num_codebooks=8,
         quant_proj='attn',
-        grad_ckpt=True,
+        grad_ckpt=grad_ckpt,
         device='cpu'
     ))
 
 
-def build_meditok(args=None, ckpt_path=None, img_size=256):
+def build_meditok(args=None, ckpt_path=None, img_size=256, grad_ckpt=False):
     if args is None:
-        args = get_meditok_args(img_size)
+        args = get_meditok_args(img_size, grad_ckpt=grad_ckpt)
 
     model = MedITok(args)
 

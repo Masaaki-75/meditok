@@ -8,7 +8,7 @@ from torch.nn.utils.spectral_norm import SpectralNorm
 from torchvision.transforms import RandomCrop
 
 from models import init_weights
-from models.dinov2 import dinov2
+from models import dinov2
 from utilities import dist
 
 
