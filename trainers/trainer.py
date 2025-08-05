@@ -126,7 +126,6 @@ class Trainer(object):
                 )
                 Lc = sum(clip_losses.values())
 
-                # 对于biomeditclip, 算两个clip loss
                 if 'clip_aux_features' in output:
                     clip_losses2 = self.clip_loss(
                         image_features=output['clip_image_features'],
@@ -147,7 +146,7 @@ class Trainer(object):
 
             wei_g = warmup_disc_schedule * self.wei_disc
             if self.adapt_wei_disc:
-                last_layer = unwrap_model(self.model).decoder.get_last_param()
+                last_layer = unwrap_model(self.model).core.decoder.get_last_param()
                 w = (torch.autograd.grad(Lnll, last_layer, retain_graph=True)[0].data.norm() /
                      torch.autograd.grad(Lg, last_layer, retain_graph=True)[0].data.norm().add_(1e-6))
                 if self.adapt_type % 10 == 0:
@@ -205,7 +204,7 @@ class Trainer(object):
             sys.exit(666)
 
         with torch.no_grad():
-            unwrap_model(self.model).logit_scale.clamp_(0, math.log(100))
+            unwrap_model(self.model).core.logit_scale.clamp_(0, math.log(100))
 
         # [zero_grad]
         if stepping:
@@ -274,7 +273,6 @@ class Trainer(object):
             f'[{type(self).__name__}.structure]: {super(Trainer, self).__repr__().replace(Trainer.__name__, "")}'
         )
 
-
     def get_config(self):
         return {
             'dcrit': self.dcrit,
@@ -341,8 +339,6 @@ class Trainer(object):
                     print(f'[{type(self).__name__}.load_state_dict] {k} is NOT FOUND in state_dict.')
         config: dict = state.pop('config', None)
 
-        # 这里主要是一些损失函数权重和ema之类的和训练有关的参数.
-        # 如果 strict=True, 当加载的配置和现在的配置有冲突的时候会报错.
         if config is not None:
             for k, v in self.get_config().items():
                 if config.get(k, None) != v:
