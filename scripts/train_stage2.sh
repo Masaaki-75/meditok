@@ -4,9 +4,9 @@ WORKSPACE="/path/to/your/meditok/repo"
 cd ${WORKSPACE}
 
 DATASET_TYPE="csvimg"
-TRAIN_DATA="${WORKSPACE}/datasets/vae/stage2_all-2m.csv"
-TRAIN_ROOT="/path/to/data/root/"
-VAL_DATA="${WORKSPACE}/datasets/vae/meta2d_test.csv"
+TRAIN_DATA="${WORKSPACE}/datasets/meta/meta2d_v2_train_example.csv"
+TRAIN_ROOT="${WORKSPACE}/datasets/examples"
+VAL_DATA="${WORKSPACE}/datasets/meta/meta2d_v2_test.csv"
 VAL_ROOT="/path/to/data/root/"
 CSV_IMG_KEY="identifier"
 CSV_CAPTION_KEY="caption"
@@ -20,8 +20,8 @@ VOCAB_SIZE=32768
 
 
 EXP_NAME="meditok_s2_clipv01"
-OUTPUT_DIR="${WORKSPACE}/outputs/unitok/${EXP_NAME}"
-RESUME_FROM="${WORKSPACE}/outputs/unitok/meditok_s1_clipv01/ep2-iter65369.pth"
+OUTPUT_DIR="${WORKSPACE}/outputs/ckpts/${EXP_NAME}"
+RESUME_FROM="${WORKSPACE}/outputs/ckpts/meditok_s1_clipv01/ep2-iter65369.pth"
 RECON_DIR="${WORKSPACE}/outputs/recon/s1"
 
 export CUDA_VISIBLE_DEVICES="0,1,2,3"
