@@ -14,7 +14,6 @@ from webdataset.filters import _shuffle
 from torch.utils.data import IterableDataset, get_worker_info
 from webdataset.tariterators import base_plus_ext, url_opener, tar_file_expander, valid_sample
 
-
 from utilities import dist, config
 from datasets.common import DataInfo, SharedEpoch
 from datasets.transforms import ReadMedicalImage

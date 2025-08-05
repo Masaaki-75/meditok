@@ -189,12 +189,12 @@ def build_image_transform(
     rot_kwargs = {} if rot_kwargs is None else rot_kwargs
 
     if is_train:
-        transforms = transv2.Compose([
+        transforms = [
             transv2.RandomResizedCrop(scale=scale_range, size=image_size, antialias=True),
             transv2.RandomHorizontalFlip(p=flip_prob),
             transv2.RandomVerticalFlip(p=flip_prob),
             RandomFixedRotation(p=rot_prob, **rot_kwargs),
-        ])
+        ]
 
         if color_jitter_prob:
             transforms.append(RandomColorJitter(p=color_jitter_prob, **color_jitter_kwargs))

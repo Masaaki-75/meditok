@@ -3,10 +3,10 @@ import gc
 import sys
 import logging
 import pandas as pd
-from common import DataInfo
 from PIL import Image, ImageFile
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data.distributed import DistributedSampler
+from datasets.common import DataInfo
 
 Image.MAX_IMAGE_PIXELS = (1024 * 1024 * 1024 // 4 // 3) * 5
 ImageFile.LOAD_TRUNCATED_IMAGES = False

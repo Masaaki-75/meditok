@@ -1,0 +1,9 @@
+identifier,dataset_name,dataset_identifier,modality,sub_modality,caption
+2d/cls/x_ray/COVIDx_CXR-4/images/train/sub-S11598_ses-E21956_run-1_bp-chest_vp-pa_cr-corrected.png,COVIDx_CXR-4,2d/cls/x_ray/COVIDx_CXR-4,x-ray,x-ray,"A template caption 1"
+2d/cls/x_ray/RSNA_Bone_Age/images/boneage-training-dataset/boneage-training-dataset/14790.png,RSNA_Bone_Age,2d/cls/x_ray/RSNA_Bone_Age,x-ray,x-ray,"A template caption 2"
+image-text/mimic_cxr_jpg/images/c44176d4-9b346635-941442d5-05447d63-ac038aea.jpg,mimic_cxr_jpg,image-text/mimic_cxr_jpg,x-ray,x-ray,"A template caption 3"
+2d/cls/x_ray/COVIDx_CXR-4/images/train/sub-S312963_ses-E29891_run-1_bp-chest_vp-ap_dx-corrected.png,COVIDx_CXR-4,2d/cls/x_ray/COVIDx_CXR-4,x-ray,x-ray,"A template caption 4"
+image-text/chexpertplus/images/train-patient46702-study2-view1_frontal.png,chexpertplus,image-text/chexpertplus,x-ray,x-ray,"A template caption 5"
+image-text/mimic_cxr_jpg/images/3eb02265-f090dc0a-6d09d5d8-fc46ffd0-5fea7f6e.jpg,mimic_cxr_jpg,image-text/mimic_cxr_jpg,x-ray,x-ray,"A template caption 6"
+2d/cls/x_ray/covidxcxr_2/images/train/9bad4ae2-1652-40bf-a1bf-d6613fa70766.png,covidxcxr_2,2d/cls/x_ray/covidxcxr_2,x-ray,x-ray,"A template caption 7"
+image-text/mimic_cxr_jpg/images/18660534-13e9d951-c9d6c3b0-9466c76c-53119c76.jpg,mimic_cxr_jpg,image-text/mimic_cxr_jpg,x-ray,x-ray,"A template caption 8"

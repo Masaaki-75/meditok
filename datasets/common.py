@@ -7,8 +7,6 @@ from torch.utils.data.distributed import DistributedSampler
 
 from utilities import config
 from trainers.sampler import DistInfiniteBatchSampler
-from datasets.wds_image_dataset import get_wds_dataset
-from datasets.csv_image_dataset import get_csvimg_dataset
 
 
 def count_samples(dataloader):
@@ -48,28 +46,6 @@ class DataInfo:
             self.sampler.set_epoch(epoch)
 
 
-def load_data(args: config.Args, epoch=0, iters=0, tokenizer=None):
-    data = {}
-    if args.train_data:
-        if args.dataset_type == "csvimg":
-            data["train"] = get_csvimg_dataset(
-                args, is_train=True, epoch=epoch, iters=iters, tokenizer=tokenizer)
-        elif args.dataset_type == "wds":
-            data["train"] = get_wds_dataset(
-                args, is_train=True, epoch=epoch, iters=iters, tokenizer=tokenizer)
-        else:
-            raise NotImplementedError(f"Unsupported training dataset type: {args.dataset_type}")
-            
-    if args.val_data:
-        if args.dataset_type == "csvimg":
-            data["val"] = get_csvimg_dataset(
-                args, is_train=False, epoch=epoch, iters=iters, tokenizer=tokenizer)
-        elif args.dataset_type == "wds":
-            data["val"] = get_wds_dataset(
-                args, is_train=False, epoch=epoch, iters=iters, tokenizer=tokenizer)
-        else:
-            raise NotImplementedError(f"Unsupported validation dataset type: {args.dataset_type}")
 
-    return data
 
 
