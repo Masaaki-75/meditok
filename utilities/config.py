@@ -12,7 +12,7 @@ from utilities import dist
 
 class Args(Tap):
     model: str = 'vitamin_large' # 'vitamin_base', 'vitamin_large', xxx
-    exp_name: str = 'unitok_large'
+    exp_name: str = 'meditok_exp'
     output_dir: str = 'local_output'
     resume_from: str = ''  # if specified, load this checkpoint; if not, load the latest checkpoint in output_dir (if exists)
     resume_net_only: bool = False  # [NOTE] I modified here
@@ -41,7 +41,7 @@ class Args(Tap):
     train_root: str = None
     val_root: str = None
     dataset_type: str = 'csvimg'
-    csv_img_key: str = 'image_id'
+    csv_img_key: str = 'identifier'
     csv_caption_key: str = 'caption'
     csv_separator: str = ','
     subset_ratio: float = 1.0
