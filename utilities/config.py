@@ -223,6 +223,9 @@ class Args(Tap):
                 s.append(f'  {k:20s}: {getattr(self, k)}')
         s = '\n'.join(s)
         return f'{{\n{s}\n}}\n'
+    
+    def get(self, key: str, default=None):
+        return getattr(self, key, default)
 
 
 def init_dist_and_get_args():
