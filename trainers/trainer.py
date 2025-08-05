@@ -301,6 +301,7 @@ class Trainer(object):
     def load_pretrained_core(self, pretrained_path):
         """Load only the tokenizer parameters from the released weights"""
         if pretrained_path is not None and os.path.exists(pretrained_path):
+            print(f'[{type(self).__name__}.load_pretrained_core] Loading core model from: {pretrained_path}')
             state_dict = torch.load(pretrained_path, map_location='cpu')
             m = getattr(self, 'model')
             if isinstance(m, DDP):
@@ -313,6 +314,9 @@ class Trainer(object):
                 missing, unexpected = ret
                 print(f'[{type(self).__name__}.load_pretrained_core] MISSING: {missing}')
                 print(f'[{type(self).__name__}.load_pretrained_core] UNEXPECTED: {unexpected}')
+        else:
+            print(f'[{type(self).__name__}.load_pretrained_core] Failed to load core model from: {pretrained_path}')
+            
 
     def load_state_dict(self, state, strict=True, resume_net_only=False, ignore_text_params=False):
         keys = ('model', 'disc') if resume_net_only else ('model', 'disc', 'model_optim', 'disc_optim')

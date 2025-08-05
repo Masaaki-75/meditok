@@ -11,7 +11,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from utilities import config, dist
 from utilities.lpips import LPIPS
 from utilities.loss import ClipLoss
-from datasets.common import load_data
+from datasets import load_data
 from datasets.transforms import build_image_transform
 from models.discrim import build_discriminator
 from models.wrapper import build_meditok_wrapper
@@ -41,13 +41,23 @@ def maybe_auto_resume(args: config.Args, pattern='ckpt*.pth'):
     if resume is not None:
         print(f'[auto_resume] only load network weights? @ {args.resume_net_only} ...')
         try:
-            ckpt = torch.load(resume, map_location='cpu')
+            ckpt_ = torch.load(resume, map_location='cpu')
+            ckpt = {}
             dist.barrier()
 
-            if args.resume_net_only:
+            # loading bare weights
+            is_bare_weights = 'epoch' not in ckpt
+            if is_bare_weights:
                 ckpt['epoch'] = 0
                 ckpt['iter'] = 0
                 ckpt['args'] = args
+                ckpt['model'] = ckpt_
+            else:
+                ckpt = ckpt_
+                if args.resume_net_only:
+                    ckpt['epoch'] = 0
+                    ckpt['iter'] = 0
+                    ckpt['args'] = args
 
             resume_epoch = ckpt['epoch']
             resume_iter = ckpt['iter']
@@ -208,8 +218,7 @@ def main():
             start_iter=start_iter,
             model_scheduler=model_scheduler,
             disc_scheduler=disc_scheduler,
-            visualizer=visualizer,
-            tokenizer=tokenizer
+            visualizer=visualizer
         )
 
     if dist.is_master():
