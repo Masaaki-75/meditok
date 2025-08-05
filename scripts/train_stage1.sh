@@ -19,8 +19,11 @@ NUM_CODEBOOKS=8
 VOCAB_SIZE=32768
 
 EXP_NAME="meditok_s1_clipv01"
+RESUME_NET_ONLY=True  # do not load optimizer
 OUTPUT_DIR="${WORKSPACE}/outputs/ckpts/${EXP_NAME}"
-PRETRAINED_CORE="${WORKSPACE}/weights/meditok/meditok_simple_v1.pth"
+#RESUME_FROM="${WORKSPACE}/weights/meditok/meditok_ckpt_v1.pth"
+RESUME_FROM="${WORKSPACE}/weights/meditok/meditok_simple_v1.pth"
+CORE_WEIGHTS_ONLY=True  # set this to true if only loading tokenizer params from meditok_simple_v1.pth
 RECON_DIR="${WORKSPACE}/outputs/recon/s1"
 
 export CUDA_VISIBLE_DEVICES="0,1"
@@ -51,5 +54,7 @@ main.py \
 --workers $WORKERS \
 --vis_img_dir 'assets/vis_imgs/' \
 --output_dir $OUTPUT_DIR \
---pretrained_core_path $PRETRAINED_CORE \
+--resume_from $RESUME_FROM \
+--resume_net_only $RESUME_NET_ONLY \
+--core_weights_only $CORE_WEIGHTS_ONLY
 
