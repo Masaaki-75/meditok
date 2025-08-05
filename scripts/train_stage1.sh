@@ -4,29 +4,29 @@ WORKSPACE="/path/to/your/meditok/repo"
 cd ${WORKSPACE}
 
 DATASET_TYPE="csvimg"
-TRAIN_DATA="${WORKSPACE}/datasets/vae/meta2d_train.csv"
-TRAIN_ROOT="/path/to/data/root/"
-VAL_DATA="${WORKSPACE}/datasets/vae/meta2d_test.csv"
+TRAIN_DATA="${WORKSPACE}/datasets/meta/meta2d_v2_train_example.csv"
+TRAIN_ROOT="${WORKSPACE}/datasets/examples"
+VAL_DATA="${WORKSPACE}/datasets/meta/meta2d_v2_test.csv"
 VAL_ROOT="/path/to/data/root/"
 CSV_IMG_KEY="identifier"
 CSV_CAPTION_KEY="caption"
 
 WORKERS=8
-LOCAL_BS=64
+LOCAL_BS=2
 IMG_SIZE=256
 EPOCH=3
 NUM_CODEBOOKS=8
 VOCAB_SIZE=32768
 
 EXP_NAME="meditok_s1_clipv01"
-OUTPUT_DIR="${WORKSPACE}/outputs/unitok/${EXP_NAME}"
-#RESUME_FROM="${WORKSPACE}/weights/unitok/unitok_tokenizer.pth"
+OUTPUT_DIR="${WORKSPACE}/outputs/ckpts/${EXP_NAME}"
+PRETRAINED_CORE="${WORKSPACE}/weights/meditok/meditok_simple_v1.pth"
 RECON_DIR="${WORKSPACE}/outputs/recon/s1"
 
-export CUDA_VISIBLE_DEVICES="0,1,2,3"
+export CUDA_VISIBLE_DEVICES="0,1"
 
 nnodes=1
-nproc_per_node=4
+nproc_per_node=2
 master_port=20165
 
 torchrun --nnodes=${nnodes} \
@@ -51,6 +51,5 @@ main.py \
 --workers $WORKERS \
 --vis_img_dir 'assets/vis_imgs/' \
 --output_dir $OUTPUT_DIR \
---resume_from $RESUME_FROM \
---resume_net_only True
+--pretrained_core_path $PRETRAINED_CORE \
 
