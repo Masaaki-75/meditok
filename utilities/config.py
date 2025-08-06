@@ -115,7 +115,7 @@ class Args(Tap):
     ema: float = 0.9999  # ema ratio
     warmup_iter: int = None
     warmup_ep: float = 0.01  # lr warmup: epochs
-    disc_start_ep: float = 0.375  # start using disc loss for VAE after xxx epochs;
+    disc_start_ep: float = 0.  # start using disc loss for VAE after xxx epochs;
     disc_warmup_ep: float = 0.03  # disc loss warm up epochs;
     schedule: str = 'cos'  # lr schedule type
     lr_start_ratio: float = 0.  # lr warmup: initial lr ratio
@@ -164,6 +164,8 @@ class Args(Tap):
     ct_bias: int = 1024  # If CT is stored as biased png
     freeze_logit_scale: bool = False
     core_weights_only: bool = False
+    lock_visual_proj: bool = False
+    drop_alignment: bool = False
 
     def seed_everything(self):
         torch.backends.cudnn.enabled = True

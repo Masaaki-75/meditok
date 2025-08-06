@@ -24,7 +24,7 @@ class MedITok(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.num_query = args.num_query
-
+        self.drop_alignment = getattr(args, 'drop_alignment', False)
         self.encoder = timm.create_model(
             args.model,
             patch_size=1,
@@ -72,12 +72,16 @@ class MedITok(nn.Module):
             grad_ckpt=args.grad_ckpt,
         )
         
-        self.fc_norm = nn.LayerNorm(self.encoder.embed_dim, eps=1e-6)
-        self.projection = nn.Linear(self.encoder.embed_dim, args.embed_dim)
-        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+        if self.drop_alignment:
+            self.fc_norm = self.projection = self.logit_scale = None
+        else:
+            self.fc_norm = nn.LayerNorm(self.encoder.embed_dim, eps=1e-6)
+            self.projection = nn.Linear(self.encoder.embed_dim, args.embed_dim)
+            self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+
         self.encoder.set_grad_checkpointing(args.grad_ckpt)
 
-    def forward(self, img, vae_bs, text=None, ret_usages=False):
+    def forward(self, img, vae_bs, text=None):
         img_tokens = self.encoder(img).float()
         with torch.cuda.amp.autocast(enabled=False):
             img_tokens = self.quant_proj(img_tokens)
@@ -85,16 +89,21 @@ class MedITok(nn.Module):
             img_tokens = self.post_quant_proj(img_tokens)
         img_rec = self.decoder(img_tokens[:vae_bs]).float()
 
-        feats = img_tokens.mean(dim=1)
-        feats = self.projection(self.fc_norm(feats))
-        feats = F.normalize(feats, dim=-1)
+        if self.drop_alignment:
+            feats = None
+            exp_logit = None
+        else:
+            feats = img_tokens.mean(dim=1)
+            feats = self.projection(self.fc_norm(feats))
+            feats = F.normalize(feats, dim=-1)
+            exp_logit = self.logit_scale.exp()
 
         output_dict = {
             "img_rec": img_rec,
             "vq_loss": vq_loss,
             "codebook_usages": usages,
             "features": feats,
-            "logit_scale": self.logit_scale.exp()
+            "logit_scale": exp_logit
         }
         return output_dict
     
@@ -112,9 +121,12 @@ class MedITok(nn.Module):
         img_tokens = self.quantizer.idx_to_f(img_indices)  # [batch_size, 256, 64]
         img_tokens = self.post_quant_proj(img_tokens)  # [batch_size, 256, 1024]
 
-        features = img_tokens.mean(dim=1)
-        features = self.projection(self.fc_norm(features))  # [batch_size, 768]
-        return F.normalize(features, dim=-1) if normalize else features
+        if self.drop_alignment:
+            return img_tokens
+        else:
+            features = img_tokens.mean(dim=1)
+            features = self.projection(self.fc_norm(features))  # [batch_size, 768]
+            return F.normalize(features, dim=-1) if normalize else features
     
     def img_to_idx(self, img):
         features = self.encoder(img).float()
@@ -152,7 +164,8 @@ def get_meditok_args(img_size=256, grad_ckpt=False):
         num_codebooks=8,
         quant_proj='attn',
         grad_ckpt=grad_ckpt,
-        device='cpu'
+        device='cpu',
+        drop_alignment=False,
     ))
 
 

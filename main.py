@@ -107,8 +107,12 @@ def main():
             freeze_layer_norm=args.lock_text_freeze_layer_norm,
             freeze_logit_scale=args.freeze_logit_scale,
         )
-    print(f'[model] Model #params {sum(p.numel() for p in model.parameters()) / 1e6:.2f}')
-    print(f'[model] Disc #params {sum(p.numel() for p in disc.parameters()) / 1e6:.2f}')
+    
+    if args.lock_visual_proj:
+        model.lock_visual_projector()
+
+    print(f'[model] Model #params {sum(p.numel() for p in model.parameters()) / 1e6:.2f} (M)')
+    print(f'[model] Disc #params {sum(p.numel() for p in disc.parameters()) / 1e6:.2f} (M)')
 
     # build optimizers & scheduler
     model_optim = build_optimizer(args, 'model', model)

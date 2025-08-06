@@ -20,6 +20,7 @@ https://github.com/huggingface/pytorch-image-models/blob/main/timm/models/vision
 import math
 from dataclasses import dataclass
 from functools import partial
+from itertools import chain
 import torch.nn.functional as F
 from typing import Optional, Tuple, Union
 
@@ -29,7 +30,7 @@ import torch.nn as nn
 from timm.layers import to_2tuple
 from timm.layers.norm_act import _create_act
 from timm.models._builder import build_model_with_cfg
-from timm.models._manipulate import checkpoint_seq, named_apply
+from timm.models._manipulate import named_apply
 from timm.models._registry import register_model
 from timm.models.layers import DropPath
 from timm.models.layers import create_conv2d, get_norm_act_layer, get_norm_layer, make_divisible
@@ -38,6 +39,69 @@ from timm.models.vision_transformer_hybrid import HybridEmbed
 from torch.utils.checkpoint import checkpoint
 
 DropPath.__repr__ = lambda self: f'{type(self).__name__}(...)'
+
+
+def checkpoint_seq(
+    functions,
+    x,
+    every=1,
+    flatten=False,
+    skip_last=False,
+    preserve_rng_state=True,
+    use_reentrant=False,
+):
+    r"""Rewrite the `checkpoint_seq` in timm.models._manipulate by
+    explicitly adding an input argument control `use_reentrant`.
+    Check original one: /opt/conda/envs/llava/lib/python3.10/site-packages/timm/models/_manipulate.py
+    
+    A helper function for checkpointing sequential models.
+
+    Sequential models execute a list of modules/functions in order
+    (sequentially). Therefore, we can divide such a sequence into segments
+    and checkpoint each segment. All segments except run in :func:`torch.no_grad`
+    manner, i.e., not storing the intermediate activations. The inputs of each
+    checkpointed segment will be saved for re-running the segment in the backward pass.
+
+    Args:
+        functions: A :class:`torch.nn.Sequential` or the list of modules or functions to run sequentially.
+        x: A Tensor that is input to :attr:`functions`
+        every: checkpoint every-n functions (default: 1)
+        flatten (bool): flatten nn.Sequential of nn.Sequentials
+        skip_last (bool): skip checkpointing the last function in the sequence if True
+        preserve_rng_state (bool, optional, default=True):  Omit stashing and restoring
+            the RNG state during each checkpoint.
+
+    Returns:
+        Output of running :attr:`functions` sequentially on :attr:`*inputs`
+
+    Example:
+        >>> model = nn.Sequential(...)
+        >>> input_var = checkpoint_seq(model, input_var, every=2)
+    """
+    def run_function(start, end, functions):
+        def forward(_x):
+            for j in range(start, end + 1):
+                _x = functions[j](_x)
+            return _x
+        return forward
+
+    if isinstance(functions, torch.nn.Sequential):
+        functions = functions.children()
+    if flatten:
+        functions = chain.from_iterable(functions)
+    if not isinstance(functions, (tuple, list)):
+        functions = tuple(functions)
+
+    num_checkpointed = len(functions)
+    if skip_last:
+        num_checkpointed -= 1
+    end = -1
+    for start in range(0, num_checkpointed, every):
+        end = min(start + every - 1, num_checkpointed - 1)
+        x = checkpoint(run_function(start, end, functions), x, preserve_rng_state=preserve_rng_state, use_reentrant=use_reentrant)
+    if skip_last:
+        return run_function(end + 1, len(functions) - 1, functions)(x)
+    return x
 
 
 @dataclass
@@ -105,7 +169,7 @@ class Stem(nn.Module):
             bias: bool = True,
     ):
         super().__init__()
-        self.grad_checkpointing=False
+        self.grad_checkpointing = False
         norm_act_layer = partial(get_norm_act_layer(norm_layer, act_layer), eps=norm_eps)
         self.out_chs = out_chs
         self.conv1 = create_conv2d(in_chs, out_chs, 3, stride=2, bias=bias)
@@ -115,9 +179,9 @@ class Stem(nn.Module):
 
     def forward(self, x):
         if self.grad_checkpointing:
-            x = checkpoint(self.conv1, x)
+            x = checkpoint(self.conv1, x, use_reentrant=False)
             x = self.norm1(x)
-            x = checkpoint(self.conv2, x)
+            x = checkpoint(self.conv2, x, use_reentrant=False)
         else:
             x = self.conv1(x)
             x = self.norm1(x)
@@ -274,8 +338,8 @@ class MbConvStages(nn.Module):
         x = self.stem(x)
         if self.grad_checkpointing and not torch.jit.is_scripting():
             for stage in self.stages:
-                x = checkpoint_seq(stage, x)
-            x = checkpoint(self.pool, x)
+                x = checkpoint_seq(stage, x, use_reentrant=False)
+            x = checkpoint(self.pool, x, use_reentrant=False)
         else:
             for stage in self.stages:
                 x = stage(x)
@@ -437,7 +501,7 @@ class InvStem(nn.Module):
         bias: bool = True,
     ):
         super().__init__()
-        self.grad_checkpointing=False
+        self.grad_checkpointing = False
         norm_act_layer = partial(get_norm_act_layer(norm_layer, act_layer), eps=norm_eps)
         self.out_chs = out_chs
         self.conv1 = Upsample2d(in_chs, in_chs)
@@ -447,9 +511,9 @@ class InvStem(nn.Module):
 
     def forward(self, x):
         if self.grad_checkpointing:
-            x = checkpoint(self.conv1, x)
+            x = checkpoint(self.conv1, x, use_reentrant=False)
             x = self.norm1(x)
-            x = checkpoint(self.conv2, x)
+            x = checkpoint(self.conv2, x, use_reentrant=False)
         else:
             x = self.conv1(x)
             x = self.norm1(x)
@@ -520,13 +584,13 @@ class ViTaminDecoder(nn.Module):
         H = W = int((L-self.num_query) ** 0.5)
         x = self.norm_pre(x)
         if self.grad_ckpt:
-            x = checkpoint_seq(self.blocks, x)
+            x = checkpoint_seq(self.blocks, x, use_reentrant=False)
             x = x[:, self.num_query:, :]
             x = self.norm(x)
             x = x.view(B, H, W, C).permute(0, 3, 1, 2)
-            x = checkpoint(self.up_conv1, x)
-            x = checkpoint_seq(self.up_conv2, x)
-            x = checkpoint_seq(self.up_conv3, x)
+            x = checkpoint(self.up_conv1, x, use_reentrant=False)
+            x = checkpoint_seq(self.up_conv2, x, use_reentrant=False)
+            x = checkpoint_seq(self.up_conv3, x, use_reentrant=False)
         else:
             x = self.blocks(x)
             x = x[:, self.num_query:, :]

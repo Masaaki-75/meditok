@@ -29,7 +29,7 @@ class Trainer(object):
         model_optim: AmpOptimizer,
         disc_optim: AmpOptimizer,
         lpips_loss: LPIPS,
-        clip_loss: ClipLoss,
+        clip_loss: ClipLoss = None,
     ):
         super().__init__()
         self.model = model
@@ -194,7 +194,9 @@ class Trainer(object):
             sys.exit(666)
 
         with torch.no_grad():
-            unwrap_model(self.model).core.logit_scale.clamp_(0, math.log(100))
+            logit_scale = unwrap_model(self.model).core.logit_scale
+            if hasattr(logit_scale, 'clamp_'):
+                logit_scale.clamp_(0, math.log(100))
 
         # [zero_grad]
         if stepping:
