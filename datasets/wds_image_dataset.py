@@ -29,7 +29,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = False
 
 
 def convert_image_to_tensor(img):
-    return torch.tensor(np.array(img.convert('RGB')), dtype=torch.float32).permute(2, 0, 1) / 255.0
+    return torch.tensor(np.array(img.convert('RGB')), dtype=torch.float32).permute(2, 0, 1) / 255.0 * 2 - 1
 
 def format_sample(x):
     zero_text_tensor = torch.zeros(77, dtype=torch.long)
