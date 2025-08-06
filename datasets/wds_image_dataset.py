@@ -7,6 +7,8 @@ import random
 import logging
 import braceexpand
 import webdataset as wds
+import torch
+import numpy as np
 
 from functools import partial
 from PIL import Image, ImageFile
@@ -16,7 +18,6 @@ from webdataset.tariterators import base_plus_ext, url_opener, tar_file_expander
 
 from utilities import dist, config
 from datasets.common import DataInfo, SharedEpoch
-from datasets.transforms import ReadMedicalImage
 
 
 _SHARD_SHUFFLE_SIZE = 2000
@@ -25,6 +26,14 @@ _SAMPLE_SHUFFLE_SIZE = 5000
 _SAMPLE_SHUFFLE_INITIAL = 1000
 Image.MAX_IMAGE_PIXELS = (1024 * 1024 * 1024 // 4 // 3) * 5
 ImageFile.LOAD_TRUNCATED_IMAGES = False
+
+
+def convert_image_to_tensor(img):
+    return torch.tensor(np.array(img.convert('RGB')), dtype=torch.float32).permute(2, 0, 1) / 255.0
+
+def format_sample(x):
+    zero_text_tensor = torch.zeros(77, dtype=torch.long)
+    return (x[0], zero_text_tensor)
 
 
 
@@ -119,7 +128,6 @@ def get_wds_dataset(args: config.Args, is_train, epoch=0, iters=0, floor=False, 
     input_shards = args.train_data if is_train else args.val_data
     assert input_shards is not None
     resampled = getattr(args, 'dataset_resampled', False) and is_train
-    preprocess_img = ReadMedicalImage(output_min=-1, output_max=1, modality=None, ct_bias=0)
 
     num_shards = None
     if is_train:
@@ -179,15 +187,11 @@ def get_wds_dataset(args: config.Args, is_train, epoch=0, iters=0, floor=False, 
         ])
 
     pipeline.extend([
-        wds.select(filter_no_caption_or_no_image),
         wds.decode("pilrgb", handler=log_and_continue),
-        wds.rename(image="jpg;png;jpeg;webp", text="txt",),
-        # wds.map_dict(image=preprocess_img, text=lambda text: tokenizer(text)[0]),
-        # wds.to_tuple("image", "text"),
-        #wds.rename(image="jpg;png;jpeg;webp", text="txt", score="json"),
-        wds.map_dict(image=preprocess_img, text=partial(preprocess_text, tokenizer=tokenizer)),
-        # wds.map_dict(image=preprocess_img, text=lambda text: tokenizer(text)[0]),
-        wds.to_tuple("image", "text"),
+        wds.rename(image="jpg;png;jpeg;webp;image.jpg", metadata="json"),
+        wds.map_dict(image=convert_image_to_tensor),
+        wds.to_tuple("image"),
+        wds.map(format_sample),
         wds.batched(args.local_bs, partial=not is_train)
     ])
 
