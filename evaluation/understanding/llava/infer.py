@@ -7,10 +7,12 @@ import torch
 import argparse
 from PIL import Image
 from tqdm import tqdm
+from argparse import Namespace
 from transformers import set_seed, logging, AutoTokenizer, AutoModelForCausalLM, AutoConfig
 
 from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN, DEFAULT_IMAGE_PATCH_TOKEN
 from llava.conversation import conv_templates, SeparatorStyle
+from llava.model.multimodal_encoder.builder import build_vision_tower
 
 
 setattr(torch.nn.Linear, "reset_parameters", lambda self: None)
@@ -65,7 +67,17 @@ def split_list(lst, n):
     return [lst[i:i+chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
-def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, load_4bit=False, device_map="auto", device="cuda"):
+def load_pretrained_model(
+    model_path, 
+    model_name, 
+    load_8bit=False, 
+    load_4bit=False, 
+    device_map="auto", 
+    device="cuda",
+    force_vision_tower_path=None,
+    quantize=True,
+    custom_encoder=True,
+):
 
     kwargs = {}
     if device != "cuda":
@@ -79,6 +91,15 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
         use_flash_attention_2=False,
         **kwargs
     )
+
+    if force_vision_tower_path is not None:
+        vision_tower_config = Namespace()
+        vision_tower_config.mm_vision_tower = force_vision_tower_path
+        vision_tower_config.quantize = quantize
+        vision_tower_config.custom_encoder = custom_encoder
+        print(f"Forcing vision tower: {vision_tower_config}")
+        vision_tower = build_vision_tower(vision_tower_config)
+        model.model.vision_tower = vision_tower
     
     image_processor = None
 
@@ -92,7 +113,6 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
         model.resize_token_embeddings(len(tokenizer))
 
         vision_tower = model.get_vision_tower()
-        print(f"The vision tower is: \n{vision_tower}")
         if not vision_tower.is_loaded:
             vision_tower.load_model()
         vision_tower.to(device=device, dtype=torch.float16)
@@ -114,12 +134,18 @@ def get_chunk(lst, n, k):
 
 
 def infer_model(args):
-    set_seed(0)
+    set_seed(args.seed)
     # Model
     disable_torch_init()
     model_path = os.path.expanduser(args.model_path)
     model_name = get_model_name_from_path(model_path)
-    tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, args.model_base, model_name)
+    tokenizer, model, image_processor, context_len = load_pretrained_model(
+        model_path, 
+        model_name,
+        force_vision_tower_path=args.force_vision_tower_path,
+        quantize=args.quantize,
+        custom_encoder=args.custom_encoder
+    )
 
     question_files = args.question_files
     for question_file in question_files:
@@ -140,6 +166,7 @@ def infer_model(args):
         for line in tqdm(questions):
             idx = line["question_id"]
             image_file = line["image"]
+            gt = line["answer"]
             qs = line["text"].replace(DEFAULT_IMAGE_TOKEN, '').strip()
             cur_prompt = qs
             if model.config.mm_use_im_start_end:
@@ -153,8 +180,8 @@ def infer_model(args):
             prompt = conv.get_prompt()
 
             input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()
-
-            image = Image.open(os.path.join(args.image_folder, image_file))
+            image_path = os.path.join(args.image_folder, image_file)
+            image = Image.open(image_path)
             image_tensor = process_images([image], image_processor, model.config)[0]
 
             stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
@@ -175,7 +202,7 @@ def infer_model(args):
 
             outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
             print(outputs)
-            ans = {"question_id": idx, "prompt": cur_prompt, "response": outputs, "model_id": model_name}
+            ans = {"question_id": idx, "prompt": cur_prompt, "response": outputs, "model_id": model_name, "answer": gt, "image":image_path}
             answers.append(ans)
 
         print(f"Saving answers to: {answer_file}")
@@ -185,17 +212,20 @@ def infer_model(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-path", type=str, default="../../../weights/llava-med-v1.5-mistral-7b")
-    parser.add_argument("--model-base", type=str, default=None)
-    parser.add_argument("--image-folder", type=str, default="")
-    parser.add_argument("--question-files", type=str, nargs='+', default="../../../datasets/understanding/vqarad_test.jsonl")
-    parser.add_argument("--answer-dir", type=str, nargs='+', default="../../../outputs/understanding/llavamed")
-    parser.add_argument("--conv-mode", type=str, default="v1")  # "vicuna_v1"
-    parser.add_argument("--num-chunks", type=int, default=1)
-    parser.add_argument("--chunk-idx", type=int, default=0)
+    parser.add_argument("--model_path", type=str, default="../../../weights/llava-med-v1.5-mistral-7b")
+    parser.add_argument("--image_folder", type=str, default="")
+    parser.add_argument("--question_files", type=str, nargs='+', default="../../../datasets/understanding/vqarad_test.jsonl")
+    parser.add_argument("--answer_dir", type=str, default="../../../outputs/understanding/llavamed")
+    parser.add_argument("--force_vision_tower_path", type=str, default="../../../weights/meditok/meditok_simple_v1.pth")
+    parser.add_argument("--conv_mode", type=str, default="v1")  # "vicuna_v1"
+    parser.add_argument("--num_chunks", type=int, default=1)
+    parser.add_argument("--chunk_idx", type=int, default=0)
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument("--top_p", type=float, default=None)
     parser.add_argument("--num_beams", type=int, default=1)
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--quantize", default=False, action='store_true')
+    parser.add_argument("--custom_encoder", default=False, action='store_true')
     args = parser.parse_args()
 
     question_files = args.question_files

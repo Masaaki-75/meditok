@@ -1,0 +1,2 @@
+{"question_id": "slake_test.jsonl_0", "image": "VQA/Slake/images/xmlab102/source.jpg", "text": "What modality is used to take this image?\n<image>", "answer": "CT", "metadata": {"answer_type": "open", "content_type": "modality", "image_organ": "lung", "image_modality": "ct"}}
+{"question_id": "slake_test.jsonl_1", "image": "VQA/Slake/images/xmlab102/source.jpg", "text": "Which part of the body does this image belong to?\n<image>", "answer": "Chest", "metadata": {"answer_type": "open", "content_type": "position", "image_organ": "lung", "image_modality": "ct"}}
