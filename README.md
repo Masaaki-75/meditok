@@ -39,6 +39,17 @@ Before training / fine-tuning the MedITok model, we need to:
 Once we have everything prepared, we can run the scripts in `./scripts` to launch the training. If you catch any bugs, feel free to open an issue/PR!
 
 
+## 🎯 Downstream Inference
+1. Download the downstream models for medical image synthesis (`llamagen_meditok`) and interpretation (`llavamed_meditok`) at our [huggingface repo](https://huggingface.co/massaki75/meditok/tree/main)
+2. Put the model folders at `./weights`.
+3. Modify the `ROOT_DIR` in the inference scripts for medical image [synthesis](https://github.com/Masaaki-75/meditok/blob/main/evaluation/generation/scripts/sample_c2i.sh) and [interpretation](https://github.com/Masaaki-75/meditok/blob/main/evaluation/understanding/scripts/sample_vqa.sh).
+4. Play with example data by running:
+```
+bash evaluation/generation/scripts/sample_c2i.sh
+bash evaluation/understanding/scripts/sample_vqa.sh
+```
+
+
 ## 🙏 Acknowledgment
 This project is built upon and inspired by several excellent prior works:
 - [UniTok](https://github.com/FoundationVision/UniTok)
