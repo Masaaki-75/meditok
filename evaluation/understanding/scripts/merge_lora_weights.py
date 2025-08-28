@@ -24,12 +24,12 @@ def merge_lora(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-path", type=str, default="path/to/your/trained/lora")
-    parser.add_argument("--model-base", type=str, default="../../../weights/llava-med-v1.5-mistral-7b")
-    parser.add_argument("--vision-tower", type=str, default=None)
+    parser.add_argument("--model_path", type=str, default="path/to/your/trained/lora")
+    parser.add_argument("--model_base", type=str, default="../../../weights/llava-med-v1.5-mistral-7b")
+    parser.add_argument("--vision_tower", type=str, default=None)
     parser.add_argument("--projector", type=str, default=None)
     parser.add_argument("--quantize", action='store_true', default=False)
-    parser.add_argument("--custom-encoder", action='store_true', default=False)
+    parser.add_argument("--custom_encoder", action='store_true', default=False)
 
     args = parser.parse_args()
     model_path = args.model_path

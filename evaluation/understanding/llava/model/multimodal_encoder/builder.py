@@ -10,7 +10,6 @@ def build_vision_tower(vision_tower_cfg, **kwargs):
     print(f'[multimodal_encoder/builder.py]------------> vision_tower: {vision_tower}')
     
     is_absolute_path_exists = os.path.exists(vision_tower)
-    use_s2 = getattr(vision_tower_cfg, 's2', False)
     quantize = getattr(vision_tower_cfg, 'quantize', False)
     custom_encoder = getattr(vision_tower_cfg, 'custom_encoder', False)
 
