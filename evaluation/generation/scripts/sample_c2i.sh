@@ -6,7 +6,7 @@ WORKSPACE="${ROOT_DIR}/evaluation/generation"
 cd ${WORKSPACE}/autoregressive/sample
 
 SAMPLE_DIR="${ROOT_DIR}/outputs/generation/llamagen_meditok"
-GPT_PATH="${ROOT_DIR}/weights/generation/meditok_c2i_gptb.pt"
+GPT_PATH="${ROOT_DIR}/weights/llamagen_meditok/meditok_c2i_gptb.pt"
 VQ_PATH="${ROOT_DIR}/weights/meditok/meditok_simple_v1.pth"
 TEST_DATA_PATH="${ROOT_DIR}/datasets/examples/c2i/medmnist-c2i-test.jsonl"
 
