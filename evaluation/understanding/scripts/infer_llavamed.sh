@@ -5,7 +5,7 @@ cd ${WORKSPACE}
 IMAGE_FOLDER=${ROOT_DIR}/datasets/examples
 
 python infer.py \
-    --question_files ${ROOT_DIR}/datasets/understanding/slake_test.jsonl \
+    --question_files ${ROOT_DIR}/datasets/examples/VQA/Slake/slake_test.jsonl \
     --image_folder ${IMAGE_FOLDER} \
     --model_path ${ROOT_DIR}/outputs/ckpts/llavamed_meditok \
     --answer_dir ${ROOT_DIR}/outputs/understanding/llavamed_meditok \
