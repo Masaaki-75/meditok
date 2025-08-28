@@ -16,10 +16,11 @@ import pandas as pd
 from tqdm import tqdm
 from PIL import Image
 
-sys.path.append('../../../..')
-from models.meditok import build_meditok
-from evaluation.generation.autoregressive.models.gpt_c2i import GPT_models
-from evaluation.generation.autoregressive.models.generate import generate
+sys.path.append(os.path.abspath('../..'))
+print(sys.path)
+from autoregressive.models.gpt_c2i import GPT_models
+from autoregressive.models.generate import generate
+from tokenizer.meditok.meditok import build_meditok
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
@@ -77,7 +78,7 @@ def main(args):
     print(f"Starting rank={rank}, seed={seed}, world_size={dist.get_world_size()}.")
 
     # create and load model
-    vq_model = build_meditok(args.vq_ckpt).eval()
+    vq_model = build_meditok(ckpt_path=args.vq_ckpt, img_size=args.image_size).eval().to(device=device)
 
     # create and load gpt model
     precision = {'none': torch.float32, 'bf16': torch.bfloat16, 'fp16': torch.float16}[args.precision]
@@ -121,14 +122,10 @@ def main(args):
 
     # Create folder to save samples:
     model_string_name = args.gpt_model.replace("/", "-")
-    vq_name = args.vq_ckpt.split('/')[-2]
-    if args.vq_embed_path is not None:
-        vq_name = vq_name + '-embed'
-    
     ckpt_string_name = os.path.basename(args.gpt_ckpt).replace(".pth", "").replace(".pt", "")
-    folder_name = f"{vq_name}-{model_string_name}-{ckpt_string_name}-" \
-                  f"temp-{args.temperature}-" \
-                  f"cfg-{args.cfg_scale}-seed-{args.global_seed}"
+    if args.vq_embed_path is not None:
+        ckpt_string_name += '-embed'
+    folder_name = f"{ckpt_string_name}-{model_string_name}-temp{args.temperature}-cfg{args.cfg_scale}-seed{args.global_seed}"
     sample_folder_dir = f"{args.sample_dir}/{folder_name}"
     dist.barrier()
 
@@ -137,14 +134,16 @@ def main(args):
     global_batch_size = n * dist.get_world_size()
     test_data_path = args.test_data_path
     test_data = read_jsonl(test_data_path)
+    num_total = len(test_data)
     
-    pbar = divide_list_with_overlap(test_data, group_len=args.per_proc_batch_size)
+    batch_size = args.per_proc_batch_size
+    pbar = divide_list_with_overlap(test_data, group_len=batch_size)
     pbar = tqdm(pbar) if rank == 0 else pbar
     total = 0
-    for batch in pbar:
+    for batch_idx, batch in enumerate(pbar):
         #c_indices = torch.randint(0, args.num_classes, (n,), device=device)
-        token_id_paths = [b['code_identifier'] for b in batch]
-        identifiers = [p.split('/')[-1].replace('.pt', '') for p in token_id_paths]
+        identifiers = [batch_idx * batch_size + i for i in range(len(batch))]
+        identifiers = [str(i).rjust(len(str(num_total)), '0') for i in identifiers]
         labels = [int(b['label']) for b in batch]
         c_indices = torch.tensor(labels, device=device)
         modalities = [MODALITY_MAPPING[c] for c in labels]
@@ -173,20 +172,6 @@ def main(args):
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
             Image.fromarray(sample).save(save_path)
         
-        if args.copy_input:
-            for i in range(len(token_id_paths)):
-                token_id_path = token_id_paths[i]
-                identifier = token_id_path.split('/')[-1].replace('.pt', '')
-                save_path = f"{args.sample_dir}/input/{modalities[i]}/{identifier}.png"
-                if not os.path.exists(save_path):
-                    index_sample = torch.load(token_id_path, map_location='cuda')
-                    samples = vq_model.idx_to_img(index_sample.unsqueeze(0))
-                    if samples.shape[-1] != args.image_size or samples.shape[-2] != args.image_size:
-                        samples = F.interpolate(samples, size=(args.image_size, args.image_size), mode='bicubic')
-                    samples = torch.clamp(127.5 * samples + 128.0, 0, 255).permute(0, 2, 3, 1).to("cpu", dtype=torch.uint8).numpy()
-                    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-                    Image.fromarray(samples[0]).save(save_path)
-
     # Make sure all processes have finished saving their samples before attempting to convert to .npz
     dist.barrier()
     dist.destroy_process_group()
@@ -194,34 +179,29 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--gpt-model", type=str, choices=list(GPT_models.keys()), default="GPT-B")
-    parser.add_argument("--gpt-ckpt", type=str, default=None)
-    parser.add_argument("--gpt-type", type=str, choices=['c2i', 't2i'], default="c2i",
-                        help="class-conditional or text-conditional")
-    parser.add_argument("--from-fsdp", action='store_true')
-    parser.add_argument("--cls-token-num", type=int, default=1, help="max token number of condition input")
+    parser.add_argument("--gpt_model", type=str, choices=list(GPT_models.keys()), default="GPT-B")
+    parser.add_argument("--gpt_ckpt", type=str, default=None)
+    parser.add_argument("--gpt_type", type=str, choices=['c2i', 't2i'], default="c2i")
+    parser.add_argument("--from_fsdp", action='store_true')
+    parser.add_argument("--cls_token_num", type=int, default=1, help="max token number of condition input")
     parser.add_argument("--precision", type=str, default='bf16', choices=["none", "fp16", "bf16"])
     parser.add_argument("--compile", action='store_true', default=False)
-    parser.add_argument("--vq-ckpt", type=str, default=None, help="ckpt path for vq model")
-    parser.add_argument("--codebook-size", type=int, default=32768, help="codebook size for vector quantization")
-    parser.add_argument("--codebook-embed-dim", type=int, default=8, help="codebook dimension for vector quantization")
-    parser.add_argument("--image-size", type=int, choices=[256, 384, 512], default=256)
-    parser.add_argument("--image-size-eval", type=int, choices=[256, 384, 512], default=256)
-    parser.add_argument("--downsample-size", type=int, choices=[8, 16], default=16)
-    parser.add_argument("--num-classes", type=int, default=6)
-    parser.add_argument("--cfg-scale", type=float, default=1.5)
-    parser.add_argument("--cfg-interval", type=float, default=-1)
-    parser.add_argument("--sample-dir", type=str, default="samples")
-    parser.add_argument("--per-proc-batch-size", type=int, default=32)
-    parser.add_argument("--num-fid-samples", type=int, default=1000)
-    parser.add_argument("--global-seed", type=int, default=0)
-    parser.add_argument("--top-k", type=int, default=0, help="top-k value to sample with")
+    parser.add_argument("--vq_ckpt", type=str, default=None, help="ckpt path for vq model")
+    parser.add_argument("--codebook_size", type=int, default=32768, help="codebook size for vector quantization")
+    parser.add_argument("--codebook_embed_dim", type=int, default=8, help="codebook dimension for vector quantization")
+    parser.add_argument("--image_size", type=int, choices=[256, 384, 512], default=256)
+    parser.add_argument("--num_classes", type=int, default=6)
+    parser.add_argument("--cfg_scale", type=float, default=1)
+    parser.add_argument("--cfg_interval", type=float, default=-1)
+    parser.add_argument("--sample_dir", type=str, default="samples")
+    parser.add_argument("--per_proc_batch_size", type=int, default=32)
+    parser.add_argument("--global_seed", type=int, default=0)
+    parser.add_argument("--top_k", type=int, default=0, help="top-k value to sample with")
     parser.add_argument("--temperature", type=float, default=1.0, help="temperature value to sample with")
-    parser.add_argument("--top-p", type=float, default=1.0, help="top-p value to sample with")
-    parser.add_argument("--num-codebooks", type=int, default=8)
-    parser.add_argument("--num-output-layer", type=int, default=1)
-    parser.add_argument("--vq-embed-path", type=str, default=None)
-    parser.add_argument("--copy-input", default=False, action='store_true')
-    parser.add_argument("--test-data-path", type=str, default='../../../../datasets/generation/medmnist-c2i-test.jsonl')
+    parser.add_argument("--top_p", type=float, default=1.0, help="top-p value to sample with")
+    parser.add_argument("--num_codebooks", type=int, default=8)
+    parser.add_argument("--num_output_layer", type=int, default=1)
+    parser.add_argument("--vq_embed_path", type=str, default=None)
+    parser.add_argument("--test_data_path", type=str, default='../../../../datasets/generation/medmnist-c2i-test.jsonl')
     args = parser.parse_args()
     main(args)
