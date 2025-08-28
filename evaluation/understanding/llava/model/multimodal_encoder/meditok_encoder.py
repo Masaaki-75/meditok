@@ -1,62 +1,14 @@
+import os
 import timm
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from transformers import CLIPImageProcessor
-
-import sys
-
-sys.path.append("../../../../..")
-from models.meditok import get_meditok_args
-from models.vitamin import GeGluMlp
-from models.quant import VectorQuantizerM
-from models.vqvae import AttnProjection
+from ..meditok.meditok import get_meditok_args, MedITok
 
 
-class MedITokEncoder(nn.Module):
-    def __init__(self, args):
-        super().__init__()
 
-        self.encoder = timm.create_model(
-            args.model,
-            patch_size=1,
-            fc_norm=False,
-            drop_rate=0.0,
-            num_classes=0,
-            global_pool='',
-            pos_embed='none',
-            class_token=False,
-            mlp_layer=GeGluMlp,
-            reg_tokens=args.num_query,
-            img_size=args.img_size,
-            drop_path_rate=args.drop_path,
-        )
-        self.encoder.pos_embed = nn.Parameter(torch.zeros(1, 1, self.encoder.embed_dim), requires_grad=False)
-
-        if args.quant_proj == 'linear':
-            self.quant_proj = nn.Linear(self.encoder.embed_dim, args.vocab_width)
-        elif args.quant_proj == 'attn':
-            self.quant_proj = AttnProjection(self.encoder.embed_dim, args.vocab_width, args.num_codebooks)
-        else:
-            raise NotImplementedError
-
-        self.quantizer = VectorQuantizerM(
-            vocab_size=args.vocab_size,
-            vocab_width=args.vocab_width,
-            beta=args.vq_beta,
-            use_entropy_loss=args.le > 0,
-            entropy_temp=args.e_temp,
-            num_codebooks=args.num_codebooks,
-        )
-
-        if args.quant_proj == 'linear':
-            self.post_quant_proj = nn.Linear(args.vocab_width, self.encoder.embed_dim)
-        elif args.quant_proj == 'attn':
-            self.post_quant_proj = AttnProjection(args.vocab_width, self.encoder.embed_dim, args.num_codebooks)
-        else:
-            raise NotImplementedError
-
-        self.embed_dim = self.encoder.embed_dim
+class MedITokEncoder(MedITok):
 
     def forward(self, image):
         img_tokens = self.encoder(image)
@@ -124,7 +76,8 @@ class MedITokVisionTower(nn.Module):
 
     @property
     def hidden_size(self):
-        return self.vision_tower.embed_dim
+        #return self.vision_tower.embed_dim
+        return self.vision_tower.encoder.embed_dim
 
     @property
     def num_patches_per_side(self):

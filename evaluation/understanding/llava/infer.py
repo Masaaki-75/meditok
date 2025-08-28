@@ -1,5 +1,6 @@
 import os
 import sys
+sys.path.append(os.path.abspath('..'))
 import math
 import json
 import torch
@@ -8,10 +9,15 @@ from PIL import Image
 from tqdm import tqdm
 from transformers import set_seed, logging, AutoTokenizer, AutoModelForCausalLM, AutoConfig
 
-from constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN, DEFAULT_IMAGE_PATCH_TOKEN
-from conversation import conv_templates, SeparatorStyle
-from utils import disable_torch_init
-from model import LlavaMistralForCausalLM
+from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN, DEFAULT_IMAGE_PATCH_TOKEN
+from llava.conversation import conv_templates, SeparatorStyle
+
+
+setattr(torch.nn.Linear, "reset_parameters", lambda self: None)
+setattr(torch.nn.LayerNorm, "reset_parameters", lambda self: None)
+
+from llava.utils import disable_torch_init
+from llava.model import LlavaMistralForCausalLM
 from mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria, process_images
 
 logging.set_verbosity_error()
@@ -194,11 +200,11 @@ if __name__ == "__main__":
 
     question_files = args.question_files
     question_files = [question_files,] if isinstance(question_files, str) else question_files
-    question_files = [
-        '../../../datasets/understanding/vqarad_test.jsonl',
-        '../../../datasets/understanding/slake_test.jsonl',
-        '../../../datasets/understanding/slake_val.jsonl'
-    ]
+    # question_files = [
+    #     '../../../datasets/understanding/vqarad_test.jsonl',
+    #     '../../../datasets/understanding/slake_test.jsonl',
+    #     '../../../datasets/understanding/slake_val.jsonl'
+    # ]
     args.question_files = question_files
     
     infer_model(args)
