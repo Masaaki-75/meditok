@@ -94,7 +94,13 @@ def main(args):
         vq_embed_path=args.vq_embed_path,
     ).to(device=device, dtype=precision)
 
-    checkpoint = torch.load(args.gpt_ckpt, map_location="cpu")
+    try:
+        checkpoint = torch.load(args.gpt_ckpt, map_location="cpu")
+    except Exception as err:
+        # The default loading may hit the new PyTorch 2.6 safety default: `torch.load` uses `weights_only=True`, which 
+        # blocks unpickling arbitrary Python objects (like argparse.Namespace) unless we explicitly allowlist them.
+        checkpoint = torch.load(args.gpt_ckpt, map_location="cpu", weights_only=False)
+        
     if args.from_fsdp:  # fsdp
         model_weight = checkpoint
     elif "model" in checkpoint:  # ddp
