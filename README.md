@@ -8,7 +8,9 @@
 📝 <a href="https://arxiv.org/abs/2505.19225" target="_blank">Paper</a> • 🤗 <a href="https://huggingface.co/massaki75/meditok/tree/main" target="_blank">Hugging Face</a> • 🧩 <a href="https://github.com/Masaaki-75/meditok" target="_blank">Github</a>
 </p>
 
-This is the official repository for MedITok, a unified visual tokenizer tailored for medical image. MedITok encodes both low-level details and high-level semantics into a unified token space, and supports building strong generative models for a wide range of tasks including medical image synthesis and interpretation. 
+This is the official repository for MedITok, a unified visual tokenizer tailored for medical image, supported by Shanghai Innovation Institute (SII). 
+
+MedITok encodes both low-level details and high-level semantics into a unified token space, and supports building strong generative models for a wide range of tasks including medical image synthesis and interpretation. 
 
 
 ## 📌 Overview
