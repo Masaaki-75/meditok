@@ -15,6 +15,7 @@ from PIL import Image
 from tqdm import tqdm
 from collections import defaultdict
 import matplotlib.pyplot as plt
+from collections.abc import Mapping
 
 
 def print_array_info(arr_list, name_list=None, compute_stat=False):
