@@ -139,8 +139,8 @@ class TokenizerWrapper(nn.Module):
 
 
 def build_meditok_wrapper(args):
-
-    model = TokenizerWrapper(args, core_class=MedITok).to(args.device)
+    device = getattr(args, 'device', 'cpu')
+    model = TokenizerWrapper(args, core_class=MedITok).to(device)
 
     # init_weights(model.core.encoder, args.vae_init)
     init_weights(model.core.decoder, args.vae_init)

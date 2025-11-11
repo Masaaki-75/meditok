@@ -82,18 +82,45 @@ def tensor_to_image(x):
     return Image.fromarray(x)
 
 
-class DotDict:
-    def __init__(self, dictionary):
-        for key, value in dictionary.items():
-            if isinstance(value, dict):
-                value = DotDict(value)  # Recursively convert nested dictionaries
-            setattr(self, key, value)
+def _wrap(obj):
+    if isinstance(obj, Mapping):
+        return DotDict({k: _wrap(v) for k, v in obj.items()})
+    if isinstance(obj, list):
+        return [_wrap(v) for v in obj]
+    if isinstance(obj, tuple):
+        return tuple(_wrap(v) for v in obj)
+    return obj
+
+
+class DotDict(dict):
+    """Dict with attribute access: d.key <==> d['key'] (when key is a valid identifier)."""
+    __slots__ = ()
+
+    # attribute -> item
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError as e:
+            raise AttributeError(name) from e
+
+    def __setattr__(self, name, value):
+        self[name] = _wrap(value)
+
+    def __delattr__(self, name):
+        try:
+            del self[name]
+        except KeyError as e:
+            raise AttributeError(name) from e
+
+    # ensure nested mappings are wrapped on setitem
+    def __setitem__(self, key, value):
+        super().__setitem__(key, _wrap(value))
 
 
 if __name__ == '__main__':
     from models.meditok import MedITok
 
-    args = DotDict(dict(
+    args = _wrap(dict(
         embed_dim=768,
         num_query=0,
         model='vitamin_large',
