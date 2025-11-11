@@ -23,6 +23,14 @@ MedITok encodes both low-level details and high-level semantics into a unified t
 - [x] Release evaluation code.
 - [x] Release training code.
 
+## 🔧 Environment
+Set up the environment by running:
+```
+conda create -n meditok python=3.11
+conda activate meditok
+pip install -r requirements.txt
+```
+
 
 ## 🎬 Demo
 1. Put the downloaded checkpoint file `meditok_simple_v1.pth` in `weights/meditok` folder. 
