@@ -70,6 +70,7 @@ This project is built upon and inspired by several excellent prior works:
 - [UniTok](https://github.com/FoundationVision/UniTok)
 - [LlamaGen](https://github.com/FoundationVision/LlamaGen)
 - [LLaVA-Med](https://github.com/microsoft/LLaVA-Med)
+- [MedVAE](https://github.com/StanfordMIMI/MedVAE)
 - ...
 
 The model also benefits from many publicly available medical image datasets. We kindly refer readers to our preprint for details.
