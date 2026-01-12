@@ -5,7 +5,7 @@
 </div>
 
 <p align="center">
-📝 <a href="https://arxiv.org/abs/2505.19225" target="_blank">Paper</a> • 🤗 <a href="https://huggingface.co/massaki75/meditok/tree/main" target="_blank">Hugging Face</a> • 🧩 <a href="https://github.com/Masaaki-75/meditok" target="_blank">Github</a>
+📝 <a href="https://arxiv.org/abs/2505.19225" target="_blank">Preprint</a> • 🤗 <a href="https://huggingface.co/massaki75/meditok/tree/main" target="_blank">Hugging Face</a> • 🧩 <a href="https://github.com/Masaaki-75/meditok" target="_blank">Github</a>
 </p>
 
 This is the official repository for MedITok, a unified visual tokenizer tailored for medical image, supported by Shanghai Innovation Institute (SII). 
@@ -18,7 +18,7 @@ MedITok encodes both low-level details and high-level semantics into a unified t
 
 
 ## 🚧 Project Status
-- [x] Release [preprint](https://arxiv.org/abs/2505.19225).
+- [x] Release [preprint](https://arxiv.org/abs/2505.19225). (We notice some typos in the preprint; they will be corrected in the next version!)
 - [x] Release the initial [weights](https://huggingface.co/massaki75/meditok/tree/main).
 - [x] Release evaluation code.
 - [x] Release training code.
