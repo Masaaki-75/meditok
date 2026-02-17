@@ -34,6 +34,7 @@ def stable_linear_transform(x, y_min=0, y_max=1, x_min=None, x_max=None, do_clip
 
 
 class ReadMedicalImage(transv2.Transform):
+    _transformed_types = (torch.Tensor, Image.Image, np.ndarray)
     def __init__(self, output_min=-1, output_max=1, modality=None, ct_bias=1024, ct_window_probs=(0.2, 0.3, 0.3, 0.15, 0.05), p=0.5):
         super().__init__()
         self.p = p
@@ -50,7 +51,7 @@ class ReadMedicalImage(transv2.Transform):
             (-500, 1300),  # bone
         )
     
-    def _get_params(self, flat_inputs):
+    def make_params(self, flat_inputs):
         apply = random.random() < self.p
 
         if self.modality == 'ct':
@@ -63,7 +64,7 @@ class ReadMedicalImage(transv2.Transform):
 
         return {"window": window}
 
-    def _transform(self, inpt, params):
+    def transform(self, inpt, params):
 
         if isinstance(inpt, np.ndarray):
             img = np.atleast_3d(inpt)
