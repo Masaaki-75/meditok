@@ -110,12 +110,12 @@ class RandomFixedRotation(transv2.Transform):
         self.angles = angles
         self.p = p
 
-    def _get_params(self, flat_inputs):
+    def make_params(self, flat_inputs):
         apply = random.random() < self.p
         angle = random.choice(self.angles) if apply else 0
         return {"apply": apply, "angle": angle}
 
-    def _transform(self, inpt, params):
+    def transform(self, inpt, params):
         if not params["apply"]:
             return inpt
         
@@ -136,11 +136,11 @@ class RandomGrayScale(transv2.Transform):
         self.p = p
         self.transf = transv2.Grayscale(num_output_channels=3)
 
-    def _get_params(self, flat_inputs):
+    def make_params(self, flat_inputs):
         apply = random.random() < self.p
         return {"apply": apply}
 
-    def _transform(self, inpt, params):
+    def transform(self, inpt, params):
         if not params["apply"]:
             return inpt
         else:
@@ -158,11 +158,11 @@ class RandomColorJitter(transv2.Transform):
         self.hue = hue
         self.transf = transv2.ColorJitter(brightness=brightness, contrast=contrast, saturation=saturation, hue=hue)
 
-    def _get_params(self, flat_inputs):
+    def make_params(self, flat_inputs):
         apply = random.random() < self.p
         return {"apply": apply}
     
-    def _transform(self, inpt, params):
+    def transform(self, inpt, params):
         if not params["apply"]:
             return inpt
         else:
