@@ -106,6 +106,10 @@ class MedITok(nn.Module):
             "logit_scale": exp_logit
         }
         return output_dict
+
+    def forward_features(self, image):
+        img_tokens = self.encoder(image)
+        return img_tokens.mean(dim=1)
     
     def encode_image_vq(self, image):
         img_tokens = self.encoder(image)  # [batch_size, 256, 1024] for 3x256x256 inputs
