@@ -55,6 +55,45 @@ Once we have everything prepared, we can run the scripts in `./scripts` to launc
 
 
 ## 🎯 Downstream Inference
+
+### Image feature extraction
+Try the following snippet:
+```python
+def read_image(img, img_size=256):
+    if isinstance(img, str):
+        img = Image.open(img)
+        
+    if isinstance(img, Image.Image):
+        img = img.convert('RGB')
+        if img.size[0] != img_size:
+            img = img.resize((img_size, img_size), Image.LANCZOS)
+    return img
+
+def image_to_tensor(x):
+    # [H, W, C] -> [B, C, H, W]
+    x = torch.FloatTensor(np.array(x)).permute(2, 0, 1)
+    x = (x / 255.) * 2. - 1.
+    return x.unsqueeze(0)
+
+def tensor_to_image(x):
+    # [B, C, H, W] -> [H, W, C]
+    x = x.clip(-1, 1).squeeze(0).permute(1, 2, 0)
+    x = (x + 1) * 255.0 / 2.0
+    x = x.numpy().astype(np.uint8)
+    return Image.fromarray(x)
+
+
+img_path = 'assets/vis_imgs/sample1.png'
+img = read_image(img_path)
+x = image_to_tensor(img)
+with torch.no_grad():
+    f = net.forward_features(x)
+```
+
+Please see [demo.ipynb](https://github.com/Masaaki-75/meditok/blob/main/demo.ipynb) or [demo.py](https://github.com/Masaaki-75/meditok/blob/main/demo.py) for details. 
+
+
+### Image synthesis and interpretation
 1. Download the downstream models for medical image synthesis (`llamagen_meditok`) and interpretation (`llavamed_meditok`) at our [huggingface repo](https://huggingface.co/massaki75/meditok/tree/main).
 2. Put the model folders at `./weights`.
 3. Modify the `ROOT_DIR` in the inference scripts for medical image [synthesis](https://github.com/Masaaki-75/meditok/blob/main/evaluation/generation/scripts/sample_c2i.sh) and [interpretation](https://github.com/Masaaki-75/meditok/blob/main/evaluation/understanding/scripts/sample_vqa.sh).
