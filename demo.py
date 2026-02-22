@@ -152,7 +152,7 @@ if __name__ == '__main__':
     x = image_to_tensor(img)
     with torch.no_grad():
         y = net.img_to_reconstructed_img(x)
-        f = net.encode_image(x)
+        f = net.forward_features(x)
 
     print_array_info([x, y, f], name_list=['input', 'recon', 'feature'])
     rec = tensor_to_image(y)

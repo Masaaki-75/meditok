@@ -6,6 +6,7 @@ seaborn
 colorama
 omegaconf
 braceexpand
+ipykernel
 torch_fidelity
 typed-argument-parser
 torch===2.1.2
