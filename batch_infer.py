@@ -129,7 +129,7 @@ def parse_args():
     parser.add_argument('--dataset_dir', type=str, default=None, help='Directory for the ')
     parser.add_argument('--infer_type', type=str, default='image', help='output type for inference.')
     parser.add_argument('--model_input_min', type=float, default=-1)
-    parser.add_argument('--model_input_min', type=float, default=-1)
+    parser.add_argument('--model_input_max', type=float, default=1)
     parser.add_argument('--model_input_channel', type=int, default=3)
     parser.add_argument('--image_size', type=int, default=256)
     parser.add_argument('--batch_size', type=int, default=1)
