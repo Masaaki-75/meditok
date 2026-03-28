@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
     args = parse_args()
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    model = build_meditok(args.pretrained_path, device=device).eval()
+    model = build_meditok(ckpt_path=args.pretrained_path).to(device).eval()
     infer_model(
         model,
         args.meta_path,
