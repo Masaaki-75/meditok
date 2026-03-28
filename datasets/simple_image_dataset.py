@@ -103,10 +103,10 @@ class SimpleImageDataset(Dataset):
 
         x = stable_linear_transform(
             x, 
-            input_min=input_min, 
-            input_max=input_max,
-            output_min=self.output_min, 
-            output_max=self.output_max
+            x_min=input_min, 
+            x_max=input_max,
+            y_min=self.output_min, 
+            y_max=self.output_max
         )
         
         return x
