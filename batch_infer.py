@@ -79,7 +79,7 @@ def infer_model(
         meta_path, 
         img_key='identifier', 
         root_dir=dataset_dir,
-        image_size=image_size,
+        image_size=(image_size, image_size),
         output_channel=model_input_channel,
         output_min=model_input_min,
         output_max=model_input_max,
