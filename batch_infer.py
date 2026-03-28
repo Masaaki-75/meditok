@@ -116,6 +116,13 @@ def infer_model(
                 results = results.permute(0, 2, 1).reshape(results.shape[0], 64, 16, 16).squeeze().cpu()
                 for i in range(results.shape[0]):
                     torch.save(results[i], save_paths[i])
+
+            elif infer_type == 'code':
+                results = model.img_to_idx(imgs).detach()  # [batch_size, 8, 256]
+                results = results.permute(0, 2, 1).reshape(results.shape[0], 8, 16, 16).squeeze().cpu()
+                for i in range(results.shape[0]):
+                    os.makedirs(os.path.dirname(save_paths[i]), exist_ok=True)
+                    torch.save(results[i].clone(), save_paths[i])
                 
             else:
                 raise NotImplementedError(f"MedITok only supports infer_type in ['image', 'vector', 'latent'], but got {infer_type}.")
