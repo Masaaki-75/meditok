@@ -59,6 +59,11 @@ Once we have everything prepared, we can run the scripts in `./scripts` to launc
 ### Image feature extraction
 Try the following snippet:
 ```python
+import torch
+from PIL import Image
+from models.meditok import build_meditok
+
+
 def read_image(img, img_size=256):
     if isinstance(img, str):
         img = Image.open(img)
@@ -83,6 +88,8 @@ def tensor_to_image(x):
     return Image.fromarray(x)
 
 
+ckpt_path = 'weights/meditok/meditok_simple_v1.pth'
+net = build_meditok(ckpt_path=ckpt_path).eval()
 img_path = 'assets/vis_imgs/sample1.png'
 img = read_image(img_path)
 x = image_to_tensor(img)
